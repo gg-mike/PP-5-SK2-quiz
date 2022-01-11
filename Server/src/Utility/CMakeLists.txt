@@ -1,0 +1,4 @@
+include_directories(../)
+add_library(Utility
+        Log.cpp
+        )

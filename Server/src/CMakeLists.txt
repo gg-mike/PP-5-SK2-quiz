@@ -1,0 +1,17 @@
+add_subdirectory(Object)
+add_subdirectory(Utility)
+
+add_executable(${PROJECT_NAME} main.cpp)
+
+target_include_directories(${PROJECT_NAME}
+        PUBLIC ../lib/json/include
+)
+target_link_directories(${PROJECT_NAME}
+        PRIVATE Object
+        PRIVATE Utility
+)
+target_link_libraries(${PROJECT_NAME}
+        Object
+        Utility
+)
+target_precompile_headers(${PROJECT_NAME} PRIVATE pch.h)
