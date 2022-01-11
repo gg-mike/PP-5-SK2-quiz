@@ -95,6 +95,8 @@ void Server::Poll() {
             break;
         }
 
+        nextPolls.push_back(polls.at(0));
+
         for (auto& pfd : polls) {
             if (pfd.revents == 0)
                 continue;
@@ -150,10 +152,10 @@ void Server::Poll() {
 ssize_t Server::Read(int _fd, std::string &message) const {
     char tmp[buffer_size];
     auto ret = read(_fd, tmp, buffer_size);
+    LOGINFO("Read: ", ret);
     if (ret == -1)
         LOGERROR("Server: read() failed on fd=", _fd);
-    message.clear();
-    message.append(tmp);
+    message = std::string(tmp);
     return ret;
 }
 
@@ -162,15 +164,14 @@ ssize_t Server::Recv(int _fd, std::string &message) const {
     auto ret = recv(_fd, tmp, buffer_size, 0);
     if (ret == -1 && errno != EWOULDBLOCK)
         LOGERROR("Server: recv() failed on fd=", _fd);
-    message.clear();
-    message.append(tmp);
+    message = std::string(tmp);
     return ret;
 }
 
 void Server::Write(int _fd, const std::string &message) const {
-    auto ret = write(_fd, message.data(), buffer_size);
+    auto ret = write(_fd, message.data(), message.size());
     if (ret == -1)
         LOGERROR("Server: write() failed on fd=", _fd);
-    if (ret != buffer_size)
+    if (ret != message.size())
         LOGERROR("Server: wrote less than requested to descriptor ", _fd, "(", ret, "/",  buffer_size, ")");
 }
