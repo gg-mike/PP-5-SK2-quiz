@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <array>
 #include <string>
@@ -12,6 +13,7 @@
 #include <cstring>
 #include <csignal>
 
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <poll.h>

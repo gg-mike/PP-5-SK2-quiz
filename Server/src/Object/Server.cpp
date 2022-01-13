@@ -1,6 +1,7 @@
-#include <sys/ioctl.h>
 #include "pch.h"
 #include "Server.h"
+
+#include "nlohmann/json.hpp"
 
 
 std::shared_ptr <Server> Server::GetInstance() {
@@ -8,20 +9,28 @@ std::shared_ptr <Server> Server::GetInstance() {
     return ServerInstance;
 }
 
-void Server::Create(char *_port, ssize_t _buffer_size) {
-    if (this->fd != -1) {
-        LOGWARNING("Server already created!");
+
+void Server::Run(const std::string &configFile) {
+    Init(configFile);
+    Listen();
+    Poll();
+}
+
+
+void Server::Init(const std::string &configFile) {
+    if (state != State::None) {
+        LOGWARNING("Server already initialized!");
         return;
     }
-    buffer_size = _buffer_size;
+    ReadConfig(configFile);
 
-    // Socket creation
     int on = 1;
     sockaddr_in sockaddrIn {
         AF_INET,
-        htons(strtol(_port, nullptr, 0)),
+        htons(config.port),
         {.s_addr = INADDR_ANY}
     };
+
     fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (fd < 0) {
         LOGERROR("Server: socket() failed");
@@ -46,16 +55,20 @@ void Server::Create(char *_port, ssize_t _buffer_size) {
         exit(EXIT_FAILURE);
     }
 
-    LOGINFO("Server: started at port: ", _port, " (fd=", this->fd, ")");
+    LOGINFO("Server: started at port: ", config.port, " (fd=", fd, ")");
+    state |= State::Inited;
 }
 
-void Server::Listen(int conn_num) const {
+void Server::Listen(int conn_num) {
+    if (conn_num == USE_CONFIG)
+        conn_num = config.listenConnectionNumber;
     if (listen(fd, conn_num) < 0) {
         LOGERROR("Server: listen() failed");
         close(fd);
         exit(EXIT_FAILURE);
     }
     LOGINFO("Server: listening for connections");
+    state |= State::Listening;
 }
 
 int Server::Accept() const {
@@ -72,15 +85,14 @@ Server::~Server() {
 
 void signal_callback_handler(int sig) {
     LOGINFO("Recv signal ", sig, "; Exiting...");
-    Server::GetInstance()->running = false;
+    Server::GetInstance()->state &= ~Server::State::Running;
 }
 
 void Server::Poll() {
     ssize_t rc;
     int acc_fd;
-    bool closeConn;
 
-    running = true;
+    state |= State::Running;
     signal(SIGINT, signal_callback_handler);
 
     std::vector<pollfd> polls {{{fd, POLLIN}}};
@@ -89,13 +101,13 @@ void Server::Poll() {
 
     std::string buffer;
 
-    while (running) {
+    while (state & State::Running) {
         if (poll(polls.data(), polls.size(), -1) < 0) {
             LOGERROR("Server: poll() failed");
             break;
         }
 
-        nextPolls.push_back(polls.at(0));
+        nextPolls.push_back({fd, POLLIN});
 
         for (auto& pfd : polls) {
             if (pfd.revents == 0)
@@ -103,7 +115,7 @@ void Server::Poll() {
 
             if (pfd.revents != POLLIN) {
                 LOGERROR("Server: revents = ", pfd.revents);
-                running = false;
+                state &= ~State::Running;
                 break;
             }
 
@@ -113,7 +125,7 @@ void Server::Poll() {
                     if (acc_fd < 0) {
                         if (errno != EWOULDBLOCK) {
                             LOGERROR("Server: accept() failed");
-                            running = false;
+                            state &= ~State::Running;
                         }
                         break;
                     }
@@ -121,27 +133,15 @@ void Server::Poll() {
                 } while (acc_fd != -1);
             }
             else {
-                closeConn = false;
-
-                do {
-                    rc = Read(pfd.fd, buffer);
-                    if (rc < 0) {
-                        closeConn = errno != EWOULDBLOCK;
-                        break;
-                    } else if (rc == 0) {
-                        LOGINFO("Server: connection closed");
-                        closeConn = true;
-                        break;
-                    }
-                    Write(1, buffer);
-
-                } while (true);
-
-                if (closeConn) {
+                rc = Recv(pfd.fd, buffer);
+                if ((rc < 0 && errno != EWOULDBLOCK) || rc == 0) {
+                    LOGINFO("Server: connection closed on fd=", pfd.fd);
                     shutdown(pfd.fd, SHUT_RDWR);
                     close(pfd.fd);
-                } else
+                } else {
+                    LOGINFO("From fd=", pfd.fd, ": ", buffer);
                     nextPolls.push_back(pfd);
+                }
             }
         }
         polls = nextPolls;
@@ -150,28 +150,40 @@ void Server::Poll() {
 }
 
 ssize_t Server::Read(int _fd, std::string &message) const {
-    char tmp[buffer_size];
-    auto ret = read(_fd, tmp, buffer_size);
-    LOGINFO("Read: ", ret);
+    char tmp[config.bufSize];
+    auto ret = read(_fd, tmp, config.bufSize);
     if (ret == -1)
         LOGERROR("Server: read() failed on fd=", _fd);
-    message = std::string(tmp);
+    message = std::string(tmp, 0, ret - 1);
     return ret;
 }
 
 ssize_t Server::Recv(int _fd, std::string &message) const {
-    char tmp[buffer_size];
-    auto ret = recv(_fd, tmp, buffer_size, 0);
+    char tmp[config.bufSize];
+    auto ret = recv(_fd, tmp, config.bufSize, 0);
     if (ret == -1 && errno != EWOULDBLOCK)
         LOGERROR("Server: recv() failed on fd=", _fd);
-    message = std::string(tmp);
+    message = std::string(tmp, 0, ret - 1);
     return ret;
 }
 
 void Server::Write(int _fd, const std::string &message) const {
-    auto ret = write(_fd, message.data(), message.size());
+    auto ret = write(_fd, message.c_str(), message.size());
     if (ret == -1)
         LOGERROR("Server: write() failed on fd=", _fd);
     if (ret != message.size())
-        LOGERROR("Server: wrote less than requested to descriptor ", _fd, "(", ret, "/",  buffer_size, ")");
+        LOGERROR("Server: wrote less than requested to descriptor ", _fd, "(", ret, "/", message.size(), ")");
+}
+
+void Server::ReadConfig(const std::string &configFile) {
+    using nlohmann::json;
+    std::ifstream ifs(configFile);
+    json j;
+    ifs >> j;
+    config = Config{
+        j["port"],
+        j["bufSize"],
+        j["listenConnectionNumber"]
+    };
+    ifs.close();
 }
