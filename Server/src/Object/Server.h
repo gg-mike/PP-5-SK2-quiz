@@ -1,46 +1,55 @@
 #pragma once
 
+#include "Client.h"
+
 class Server {
 public:
-    static constexpr int USE_CONFIG{-1};
     static constexpr const char * DEFAULT_CONFIG{"res/defaultConfig.json"};
 
-    enum State {
-        None =      0,
-        Inited =    1 << 2,
-        Listening = 1 << 3,
-        Running =   1 << 4,
+    using RequestCode = unsigned short;
+
+    enum Request: RequestCode {
+        SHUTDOWN = 1 << 1
     };
+
 
     struct Config {
         int port;
         ssize_t bufSize;
-        int listenConnectionNumber;
+        int listenConnNum;
+        int maxTimeBetweenHb_sec;
     };
 
 private:
-    int state{None};
+    std::atomic<bool> running{false};
     int fd{-1};
     Config config{};
+
+    std::condition_variable cv;
+    std::recursive_mutex clientsMtx;
+    std::mutex handleMtx;
+    std::map<int, std::shared_ptr<Client>> clients{};
+    std::set<int> clientsToShutdown{};
+
+    std::thread acceptThread;
+    std::thread handleThread;
 
 public:
     static std::shared_ptr<Server> GetInstance();
 
-    ~Server();
-
     void Run(const std::string& configFile=DEFAULT_CONFIG);
-    void Init(const std::string &configFile=DEFAULT_CONFIG);
-    void Listen(int conn_num=USE_CONFIG);
-    int Accept() const;
-    void Poll();
-    ssize_t Read(int _fd, std::string& message) const;
-    ssize_t Recv(int _fd, std::string &message) const;
+    void Shutdown();
 
-    void Write(int _fd, const std::string& message) const;
+    void ClientRequest(int clientFd, RequestCode request);
 
-public:
-    friend void signal_callback_handler(int signal);
+    [[nodiscard]] Config GetConfig() const { return config; }
 
 private:
+    void Init(const std::string &configFile=DEFAULT_CONFIG);
+    void AcceptClients();
+    void HandleClients();
     void ReadConfig(const std::string& configFile);
+
+public:
+    friend void SignalCallbackHandler(int signal);
 };
