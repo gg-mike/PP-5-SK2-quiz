@@ -1,11 +1,13 @@
 package put.edu.gui.serverapi;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 
 public class ServerApi {
     private static String serverAddress;
     private static Socket socket;
+    private static OutputStreamWriter outputStreamWriter;
 
     public static boolean connect(String address, int port) {
         System.out.printf("connecting to address: %s, port: %d%n", address, port);

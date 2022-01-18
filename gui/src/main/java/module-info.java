@@ -8,6 +8,6 @@ module put.edu.gui {
     requires eu.hansolo.tilesfx;
     requires javafx.graphics;
 
-    opens put.edu.gui.controllers to javafx.fxml;
+    requires com.google.gson;
     exports put.edu.gui;
 }
