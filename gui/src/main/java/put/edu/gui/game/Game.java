@@ -2,8 +2,10 @@ package put.edu.gui.game;
 
 public class Game implements Runnable {
     private final Thread thread;
+    private final int gameNumber;
 
-    public Game() {
+    public Game(int gameNumber) {
+        this.gameNumber = gameNumber;
         this.thread = new Thread(this);
         this.thread.start();
     }
