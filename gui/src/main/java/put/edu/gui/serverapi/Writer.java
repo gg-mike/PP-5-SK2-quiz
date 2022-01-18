@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 import java.io.BufferedWriter;
 
 public class Writer {
-    private BufferedWriter bufferedWriter;
+    private final BufferedWriter bufferedWriter;
 
     public Writer(BufferedWriter bufferedWriter) {
         this.bufferedWriter = bufferedWriter;

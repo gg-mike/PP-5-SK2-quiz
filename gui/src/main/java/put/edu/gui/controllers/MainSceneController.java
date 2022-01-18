@@ -2,7 +2,9 @@ package put.edu.gui.controllers;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import put.edu.gui.KahootApplication;
 import put.edu.gui.serverapi.ServerApi;
 
@@ -27,12 +29,12 @@ public class MainSceneController {
 
     @FXML
     public void showPlayerScene(ActionEvent actionEvent) throws IOException {
-        KahootApplication.showScene(actionEvent, "player-view.fxml");
+        KahootApplication.showScene((Stage) ((Node) actionEvent.getSource()).getScene().getWindow(), "player-view.fxml");
     }
 
     @FXML
     public void showHostScene(ActionEvent actionEvent) throws IOException {
-        KahootApplication.showScene(actionEvent, "host-view.fxml");
+        KahootApplication.showScene((Stage) ((Node) actionEvent.getSource()).getScene().getWindow(), "host-view.fxml");
     }
 
 
