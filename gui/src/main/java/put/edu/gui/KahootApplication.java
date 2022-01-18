@@ -7,9 +7,9 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import put.edu.gui.serverapi.ServerApi;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.Objects;
 
 
@@ -19,6 +19,8 @@ public class KahootApplication extends Application {
     private static Stage stage;
     private static Scene scene;
     private static Parent parent;
+    private static ServerApi serverApi;
+
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -40,5 +42,7 @@ public class KahootApplication extends Application {
     public static void main(String[] args) {
         launch();
     }
+
+
 
 }
