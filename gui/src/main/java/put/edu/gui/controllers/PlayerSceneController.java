@@ -7,16 +7,17 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import put.edu.gui.KahootApplication;
+import put.edu.gui.game.Game;
 
 import java.io.IOException;
 
 public class PlayerSceneController {
+    private Game game;
     @FXML
     public TextField gameNumberTextField;
 
     @FXML
     public void joinGame() {
-
 
     }
 
