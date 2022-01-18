@@ -20,5 +20,19 @@ public class ServerApi {
         return true;
     }
 
+    public boolean isConnected() {
+        return socket != null && socket.isConnected();
+    }
+
+    public void disconnect() {
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                System.err.println("socket disconnection error");
+            }
+        }
+    }
+
 
 }

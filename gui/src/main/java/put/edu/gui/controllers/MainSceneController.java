@@ -13,7 +13,6 @@ public class MainSceneController {
     @FXML
     public TextField serverAddressTextField;
 
-
     @FXML
     public void connectToServer() {
         String serverUrl = serverAddressTextField.textProperty().getValue();
