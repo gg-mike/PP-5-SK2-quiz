@@ -2,5 +2,5 @@
   "port": 3333,
   "bufSize": 1024,
   "listenConnNum": 32,
-  "maxTimeBetweenHb_sec": 10
+  "maxTimeBetweenHb_sec": 1000
 }
