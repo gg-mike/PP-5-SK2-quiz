@@ -2,16 +2,13 @@ package put.edu.gui.serverapi;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ServerApi {
-    private static String serverAddress;
-    private static Socket socket;
-    private static Reader reader;
-    private static Writer writer;
+    private Socket socket;
+    private Reader reader;
+    private Writer writer;
 
-    public static boolean connect(String address, int port) {
+    public boolean connect(String address, int port) {
         System.out.printf("connecting to address: %s, port: %d%n", address, port);
         try {
             socket = new Socket(address, port);
@@ -26,19 +23,23 @@ public class ServerApi {
         return true;
     }
 
-    public static boolean isConnected() {
+    public boolean isConnected() {
         return socket != null && socket.isConnected();
     }
 
-    public static void disconnect() {
+    public void disconnect() {
         System.out.println("disconnecting");
         if (socket != null) {
+            reader.stop();
+            writer.stop();
             try {
                 socket.close();
-                socket = null;
             } catch (IOException e) {
                 System.err.println("socket disconnection error");
             }
+            reader = null;
+            writer = null;
+            socket = null;
         }
         System.out.println("disconnecting succeeded");
     }

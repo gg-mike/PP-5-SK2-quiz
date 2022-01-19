@@ -9,6 +9,7 @@ module put.edu.gui {
     requires javafx.graphics;
 
     requires com.google.gson;
+    requires lombok;
 
     opens put.edu.gui.controllers to javafx.fxml;
 

@@ -6,7 +6,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import put.edu.gui.KahootApplication;
+import put.edu.gui.KahootApp;
 import put.edu.gui.game.Game;
 
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class PlayerSceneController {
 
     @FXML
     public void exit(ActionEvent actionEvent) throws IOException {
-        KahootApplication.showScene((Stage) ((Node) actionEvent.getSource()).getScene().getWindow(), "main-view.fxml");
+        KahootApp.get().showScene("main-view.fxml");
     }
 
 }
