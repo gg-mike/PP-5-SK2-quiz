@@ -5,15 +5,13 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import lombok.Getter;
-import lombok.Setter;
 import put.edu.gui.serverapi.ServerApi;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Objects;
+import java.util.Optional;
 
-@Getter
-@Setter
 public class KahootApp extends Application {
     public static final int width = 800;
     public static final int height = 500;
@@ -25,11 +23,8 @@ public class KahootApp extends Application {
         return kahootApp;
     }
 
-    @Override
-    public void start(Stage stage) throws IOException {
-        kahootApp = this;
-        this.stage = stage;
-        showScene("main-view.fxml");
+    public static void main(String[] args) {
+        launch();
     }
 
     public void showScene(String sceneFileName) throws IOException {
@@ -40,8 +35,32 @@ public class KahootApp extends Application {
         stage.show();
     }
 
-    public static void main(String[] args) {
-        launch();
+    public boolean connect(String address, int port) {
+        if (Optional.ofNullable(serverApi).isPresent()) {
+            return false;
+        }
+        try {
+            serverApi = new ServerApi(address, port);
+            System.out.println("connected");
+        } catch (ConnectException e) {
+            System.err.println("connection failed");
+        }
+        return true;
+    }
+
+    public boolean isConnected() {
+        return Optional.ofNullable(serverApi).isPresent() && serverApi.isConnected();
+    }
+
+    public void disconnect() {
+        serverApi.disconnect();
+    }
+
+    @Override
+    public void start(Stage stage) throws IOException {
+        kahootApp = this;
+        this.stage = stage;
+        showScene("main-view.fxml");
     }
 
 }

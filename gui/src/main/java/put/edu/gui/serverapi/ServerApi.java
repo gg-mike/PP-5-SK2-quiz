@@ -1,26 +1,23 @@
 package put.edu.gui.serverapi;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.Socket;
 
 public class ServerApi {
-    private Socket socket;
-    private Reader reader;
-    private Writer writer;
+    private final Socket socket;
+    private final Reader reader;
+    private final Writer writer;
 
-    public boolean connect(String address, int port) {
+    public ServerApi(String address, int port) throws ConnectException {
         System.out.printf("connecting to address: %s, port: %d%n", address, port);
         try {
             socket = new Socket(address, port);
             reader = new Reader(socket.getInputStream());
             writer = new Writer(socket.getOutputStream());
         } catch (IOException e) {
-            System.out.println("connection failed");
-            socket = null;
-            return false;
+            throw new ConnectException("connection failed");
         }
-        System.out.println("connection succeeded");
-        return true;
     }
 
     public boolean isConnected() {
@@ -37,9 +34,6 @@ public class ServerApi {
             } catch (IOException e) {
                 System.err.println("socket disconnection error");
             }
-            reader = null;
-            writer = null;
-            socket = null;
         }
         System.out.println("disconnecting succeeded");
     }
