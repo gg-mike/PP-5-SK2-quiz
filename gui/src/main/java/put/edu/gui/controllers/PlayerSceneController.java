@@ -7,6 +7,7 @@ import javafx.scene.control.TextField;
 import lombok.extern.slf4j.Slf4j;
 import put.edu.gui.KahootApp;
 import put.edu.gui.game.Game;
+import put.edu.gui.game.messages.HeartBeat;
 
 import java.io.IOException;
 
@@ -24,6 +25,7 @@ public class PlayerSceneController {
     public void sendAnswer(ActionEvent actionEvent) {
         if (actionEvent.getSource() instanceof Button button) {
             log.info("button: " + button.getId());
+            KahootApp.get().sendMessage(new HeartBeat("button: " + button.getId()));
         }
 
     }

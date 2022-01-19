@@ -1,11 +1,13 @@
 package put.edu.gui;
 
+import io.reactivex.rxjava3.core.Observable;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
+import put.edu.gui.serverapi.Message;
 import put.edu.gui.serverapi.ServerApi;
 
 import java.io.IOException;
@@ -60,6 +62,20 @@ public class KahootApp extends Application {
             serverApi.disconnect();
             serverApi = null;
         }
+    }
+
+
+    public void sendMessage(Message message) {
+        if (Optional.ofNullable(serverApi).isPresent()) {
+            serverApi.getWriter().getMessageSubject().onNext(message);
+        }
+    }
+
+    public Optional<Observable<Message>> getMessageObservable() {
+        if (Optional.ofNullable(serverApi).isPresent()) {
+            return Optional.of(serverApi.getReader().getMessageSubject());
+        }
+        return Optional.empty();
     }
 
     @Override

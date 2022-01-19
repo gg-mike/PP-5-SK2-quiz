@@ -1,5 +1,6 @@
 package put.edu.gui.serverapi;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -7,6 +8,7 @@ import java.net.ConnectException;
 import java.net.Socket;
 
 @Slf4j
+@Getter
 public class ServerApi {
     private final Socket socket;
     private final Reader reader;
@@ -29,17 +31,14 @@ public class ServerApi {
 
     public void disconnect() {
         log.info("disconnecting");
-        if (socket != null) {
-            reader.stop();
-            writer.stop();
-            try {
-                socket.close();
-            } catch (IOException e) {
-                log.error("socket disconnection error");
-            }
+        reader.stop();
+        writer.stop();
+        try {
+            socket.close();
+        } catch (IOException e) {
+            log.error("socket disconnection error");
         }
         log.info("disconnecting succeeded");
     }
-
 
 }

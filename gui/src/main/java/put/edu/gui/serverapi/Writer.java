@@ -1,34 +1,31 @@
 package put.edu.gui.serverapi;
 
 import com.google.gson.Gson;
+import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 
 @Slf4j
 public class Writer extends ServerCommunicator {
-    private final BufferedWriter bufferedWriter;
+    private final OutputStream outputStream;
 
     public Writer(OutputStream outputStream) {
-        this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
-    }
-
-    public void send(Object object) throws IOException {
-        String json = new Gson().toJson(object);
-        log.info(json);
-        bufferedWriter.write(json);
+        super(PublishSubject.create());
+        this.outputStream = outputStream;
     }
 
     @Override
     public void run() {
-        try {
-            getMessageQueue().take();
-        } catch (InterruptedException e) {
-            log.error("take message exception");
-        }
+        getMessageSubject().blockingSubscribe(this::sendMessage);
+    }
+
+    private void sendMessage(Message message) throws IOException {
+        log.info("Sending message: {}", message);
+        String json = new Gson().toJson(message);
+        log.info(json);
+        outputStream.write(json.getBytes());
     }
 
 }

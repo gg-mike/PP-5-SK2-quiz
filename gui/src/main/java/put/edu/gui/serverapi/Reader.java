@@ -2,6 +2,7 @@ package put.edu.gui.serverapi;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import io.reactivex.rxjava3.subjects.UnicastSubject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -20,6 +21,7 @@ public class Reader extends ServerCommunicator {
     private final BufferedReader bufferedReader;
 
     public Reader(InputStream inputStream) {
+        super(UnicastSubject.create());
         this.bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
     }
 
@@ -51,8 +53,9 @@ public class Reader extends ServerCommunicator {
                 stringBuilder.append(line).append(System.lineSeparator());
             }
             Optional<Message> optionalMessage = convertToMessage(stringBuilder.toString());
-            getMessageQueue().add(optionalMessage.orElseThrow());
-
+            Message message = optionalMessage.orElseThrow();
+            log.info("Message read: {}", message);
+            getMessageSubject().onNext(message);
         } catch (IOException e) {
             log.error("Received invalid message");
         }

@@ -11,8 +11,11 @@ module put.edu.gui {
     requires com.google.gson;
     requires lombok;
     requires org.slf4j;
+    requires io.reactivex.rxjava3;
 
     opens put.edu.gui.controllers to javafx.fxml;
+    opens put.edu.gui.game.messages to com.google.gson;
 
     exports put.edu.gui;
+    exports put.edu.gui.serverapi;
 }
