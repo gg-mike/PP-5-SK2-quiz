@@ -10,6 +10,7 @@ module put.edu.gui {
 
     requires com.google.gson;
     requires lombok;
+    requires org.slf4j;
 
     opens put.edu.gui.controllers to javafx.fxml;
 

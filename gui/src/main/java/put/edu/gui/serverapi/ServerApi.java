@@ -1,16 +1,19 @@
 package put.edu.gui.serverapi;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Socket;
 
+@Slf4j
 public class ServerApi {
     private final Socket socket;
     private final Reader reader;
     private final Writer writer;
 
     public ServerApi(String address, int port) throws ConnectException {
-        System.out.printf("connecting to address: %s, port: %d%n", address, port);
+        log.info("connecting to address: {}, port: {}", address, port);
         try {
             socket = new Socket(address, port);
             reader = new Reader(socket.getInputStream());
@@ -25,17 +28,17 @@ public class ServerApi {
     }
 
     public void disconnect() {
-        System.out.println("disconnecting");
+        log.info("disconnecting");
         if (socket != null) {
             reader.stop();
             writer.stop();
             try {
                 socket.close();
             } catch (IOException e) {
-                System.err.println("socket disconnection error");
+                log.error("socket disconnection error");
             }
         }
-        System.out.println("disconnecting succeeded");
+        log.info("disconnecting succeeded");
     }
 
 
