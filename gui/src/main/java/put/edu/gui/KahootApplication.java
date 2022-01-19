@@ -37,5 +37,4 @@ public class KahootApplication extends Application {
         launch();
     }
 
-
 }
