@@ -1,29 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.*?>
+<HBox xmlns:fx="http://javafx.com/fxml/1" alignment="CENTER" prefHeight="500.0" prefWidth="800.0"
+      xmlns="http://javafx.com/javafx/16" fx:controller="put.edu.gui.controllers.MainSceneController">
+    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="200.0">
+        <TextField fx:id="serverAddressTextField" text="localhost:3333"/>
+        <Button fx:id="connectButton" alignment="CENTER" contentDisplay="CENTER"
+                maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#connectToServer"
+                text="CONNECT"/>
 
-<HBox alignment="CENTER" prefHeight="500.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="put.edu.gui.controllers.MainSceneController">
-    <children>
-        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="200.0">
-            <children>
-                <TextField fx:id="serverAddressTextField" text="localhost:3333" />
-                <Button fx:id="connectButton" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#connectToServer" text="CONNECT" />
 
+        <GridPane alignment="CENTER">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            </rowConstraints>
+            <Button alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                    mnemonicParsing="false" onAction="#showHostScene" text="HOST"/>
+            <Button alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                    onAction="#showPlayerScene" text="PLAYER" GridPane.columnIndex="1"/>
+        </GridPane>
 
-                <GridPane alignment="CENTER">
-                    <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                    <Button alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showHostScene" text="HOST" />
-                    <Button alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#showPlayerScene" text="PLAYER" GridPane.columnIndex="1" />
-                </GridPane>
-
-            </children>
-        </VBox>
-    </children>
+    </VBox>
 </HBox>

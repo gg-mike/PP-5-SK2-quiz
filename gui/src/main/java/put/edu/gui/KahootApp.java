@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import lombok.extern.slf4j.Slf4j;
 import put.edu.gui.serverapi.ServerApi;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.net.ConnectException;
 import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 public class KahootApp extends Application {
     public static final int width = 800;
     public static final int height = 500;
@@ -37,13 +39,14 @@ public class KahootApp extends Application {
 
     public boolean connect(String address, int port) {
         if (Optional.ofNullable(serverApi).isPresent()) {
+            log.info("Cannot connect when connected");
             return false;
         }
         try {
             serverApi = new ServerApi(address, port);
-            System.out.println("connected");
+            log.info("connected");
         } catch (ConnectException e) {
-            System.err.println("connection failed");
+            log.error("connection failed");
         }
         return true;
     }
@@ -53,7 +56,10 @@ public class KahootApp extends Application {
     }
 
     public void disconnect() {
-        serverApi.disconnect();
+        if (Optional.ofNullable(serverApi).isPresent()) {
+            serverApi.disconnect();
+            serverApi = null;
+        }
     }
 
     @Override
@@ -61,6 +67,11 @@ public class KahootApp extends Application {
         kahootApp = this;
         this.stage = stage;
         showScene("main-view.fxml");
+    }
+
+    @Override
+    public void stop() {
+        disconnect();
     }
 
 }
