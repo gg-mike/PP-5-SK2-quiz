@@ -19,4 +19,5 @@ private:
     void ReadMessages();
     void ProcessMessage(const std::string& message) const;
 
+    void SendShutdownMessage() const;
 };

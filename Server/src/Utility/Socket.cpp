@@ -50,4 +50,9 @@ namespace Socket {
         }
     }
 
+    void Shutdown(int fd) {
+        shutdown(fd, SHUT_RDWR);
+        close(fd);
+    }
+
 }

@@ -4,7 +4,7 @@
 #include "Server.h"
 #include "nlohmann/json.hpp"
 
-using std::chrono::high_resolution_clock, std::chrono::duration_cast, std::chrono::milliseconds;
+using std::chrono::high_resolution_clock, std::chrono::duration_cast;
 
 Client::Client(int fd)
     : fd(fd), lastHeartbeat(high_resolution_clock::now()) {
@@ -15,8 +15,8 @@ Client::Client(int fd)
 
 void Client::Shutdown() {
     running = false;
-    shutdown(fd, SHUT_RDWR);
-    close(fd);
+    SendShutdownMessage();
+    Socket::Shutdown(fd);
     heartbeatThread.join();
     readerThread.join();
     LOGINFO("Client #", fd, ": connection closed");
@@ -24,9 +24,9 @@ void Client::Shutdown() {
 
 void Client::CheckHeartbeat() {
     while (running) {
-        std::this_thread::sleep_for(milliseconds(maxTimeBetweenHb_ms / 5));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
 
-        if (duration_cast<milliseconds>(high_resolution_clock::now() - lastHeartbeat.load())
+        if (duration_cast<std::chrono::milliseconds>(high_resolution_clock::now() - lastHeartbeat.load())
                 .count() < maxTimeBetweenHb_ms) continue;
 
         if (!running) return;
@@ -64,6 +64,14 @@ void Client::ProcessMessage(const std::string &message) const {
             {"text", message},
             {"size", message.size()}
     };
-    ssize_t size = std::min(Server::GetInstance()->GetConfig().bufSize, (long)response.dump(4).size());
-    IO::Write(fd, response.dump(4), size);
+
+    Server::GetInstance()->Send(fd, response.dump(4));
+}
+
+void Client::SendShutdownMessage() const {
+    nlohmann::json response{
+            {"text", "Shutdown"}
+    };
+
+    Server::GetInstance()->Send(fd, response.dump(4));
 }
