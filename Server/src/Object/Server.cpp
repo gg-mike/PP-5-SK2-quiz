@@ -33,8 +33,8 @@ void Server::Shutdown() {
     LOGINFO("Server: shutdown ended");
 }
 
-void Server::ClientRequest(int clientFd, RequestCode request) {
-    if (request & Request::SHUTDOWN) {
+void Server::ClientRequest(int clientFd, Enumerators::ClientRequestCode request) {
+    if (request & Enumerators::ClientRequest::SHUTDOWN) {
         std::unique_lock _{handleMtx};
         clientsToShutdown.insert(clientFd);
         cv.notify_one();

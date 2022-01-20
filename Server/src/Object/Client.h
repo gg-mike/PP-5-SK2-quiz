@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Game/Participants/IGameParticipant.h"
+
 class Client {
 private:
     int maxTimeBetweenHb_ms;
@@ -10,6 +12,8 @@ private:
     std::thread heartbeatThread;
     std::thread readerThread;
 
+    std::shared_ptr<IGameParticipant> gameParticipant{nullptr};
+
 public:
     explicit Client(int fd);
     void Shutdown();
@@ -17,7 +21,7 @@ public:
 private:
     void CheckHeartbeat();
     void ReadMessages();
-    void ProcessMessage(const std::string& message) const;
+    void ProcessRequest(const nlohmann::json& request);
 
     void SendShutdownMessage() const;
 };

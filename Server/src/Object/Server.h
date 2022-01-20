@@ -1,17 +1,11 @@
 #pragma once
 
 #include "Client.h"
+#include "../Enumerators/ClientRequest.h"
 
 class Server {
 public:
     static constexpr const char * DEFAULT_CONFIG{"res/defaultConfig.json"};
-
-    using RequestCode = unsigned short;
-
-    enum Request: RequestCode {
-        SHUTDOWN = 1 << 1
-    };
-
 
     struct Config {
         int port;
@@ -40,7 +34,7 @@ public:
     void Run(const std::string& configFile=DEFAULT_CONFIG);
     void Shutdown();
 
-    void ClientRequest(int clientFd, RequestCode request);
+    void ClientRequest(int clientFd, Enumerators::ClientRequestCode request);
 
     void Send(int receiverFd, const std::string& message) const;
 
