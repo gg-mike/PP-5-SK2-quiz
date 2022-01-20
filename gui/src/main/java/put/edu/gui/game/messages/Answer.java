@@ -1,10 +1,16 @@
 package put.edu.gui.game.messages;
 
-import lombok.Data;
+import lombok.Getter;
 import put.edu.gui.serverapi.Message;
 
-@Data
-public class Answer implements Message {
-    private int question;
-    private int answer;
+@Getter
+public class Answer extends Message {
+    private final int question;
+    private final int answer;
+
+    public Answer(String type, int question, int answer) {
+        super(Answer.class.getSimpleName());
+        this.question = question;
+        this.answer = answer;
+    }
 }

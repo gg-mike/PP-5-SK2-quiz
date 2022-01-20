@@ -1,4 +1,10 @@
 package put.edu.gui.serverapi;
 
-public interface Message {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public abstract class Message {
+    private String type;
 }

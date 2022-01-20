@@ -1,10 +1,16 @@
 package put.edu.gui.game.messages;
 
-import lombok.Data;
+import lombok.Getter;
 import put.edu.gui.serverapi.Message;
 
-@Data
-public class TestMessage implements Message {
-    private int size;
-    private String text;
+@Getter
+public class TestMessage extends Message {
+    private final int size;
+    private final String text;
+
+    public TestMessage(int size, String text) {
+        super(TestMessage.class.getSimpleName());
+        this.size = size;
+        this.text = text;
+    }
 }
