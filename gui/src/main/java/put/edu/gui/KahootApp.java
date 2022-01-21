@@ -6,8 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import lombok.extern.slf4j.Slf4j;
-import put.edu.gui.serverapi.Message;
+import put.edu.gui.game.messages.Message;
 import put.edu.gui.serverapi.ServerApi;
 
 import java.io.IOException;
@@ -15,7 +14,7 @@ import java.net.ConnectException;
 import java.util.Objects;
 import java.util.Optional;
 
-@Slf4j
+
 public class KahootApp extends Application {
     public static final int width = 800;
     public static final int height = 500;
@@ -41,14 +40,15 @@ public class KahootApp extends Application {
 
     public boolean connect(String address, int port) {
         if (Optional.ofNullable(serverApi).isPresent()) {
-            log.info("Cannot connect when connected");
+            System.out.println("Cannot connect when connected");
             return false;
         }
         try {
             serverApi = new ServerApi(address, port);
-            log.info("connected");
+            System.out.println("connected");
         } catch (ConnectException e) {
-            log.error("connection failed");
+            System.out.println("connection failed");
+            return false;
         }
         return true;
     }

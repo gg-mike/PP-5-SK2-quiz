@@ -4,14 +4,12 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import lombok.extern.slf4j.Slf4j;
 import put.edu.gui.KahootApp;
 import put.edu.gui.game.Game;
-import put.edu.gui.game.messages.JoinGameMessage;
+import put.edu.gui.game.messages.requests.JoinGameMessage;
 
 import java.io.IOException;
 
-@Slf4j
 public class PlayerSceneController {
     @FXML
     public TextField gameNumberTextField;
@@ -24,8 +22,8 @@ public class PlayerSceneController {
 
     public void sendAnswer(ActionEvent actionEvent) {
         if (actionEvent.getSource() instanceof Button button) {
-            log.info("button: " + button.getId());
-            KahootApp.get().sendMessage(new JoinGameMessage("button: " + button.getId()));
+            System.out.println("button: " + button.getId());
+            KahootApp.get().sendMessage(new JoinGameMessage(Integer.parseInt(button.getId()), "Piotr"));
         }
 
     }

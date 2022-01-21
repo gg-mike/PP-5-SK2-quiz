@@ -2,12 +2,11 @@ package put.edu.gui.serverapi;
 
 import com.google.gson.Gson;
 import io.reactivex.rxjava3.subjects.PublishSubject;
-import lombok.extern.slf4j.Slf4j;
+import put.edu.gui.game.messages.Message;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-@Slf4j
 public class Writer extends ServerCommunicator {
     private final OutputStream outputStream;
 
@@ -18,13 +17,13 @@ public class Writer extends ServerCommunicator {
 
     @Override
     public void run() {
-        getMessageSubject().blockingSubscribe(this::sendMessage);
+        getMessageSubject().onErrorComplete().blockingSubscribe(this::sendMessage);
     }
 
     private void sendMessage(Message message) throws IOException {
-        log.info("Sending message: {}", message);
+        System.out.println("Sending message: " + message);
         String json = new Gson().toJson(message);
-        log.info(json);
+        System.out.println(json);
         outputStream.write(json.getBytes());
     }
 

@@ -3,12 +3,10 @@ package put.edu.gui.controllers;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import lombok.extern.slf4j.Slf4j;
 import put.edu.gui.KahootApp;
 
 import java.io.IOException;
 
-@Slf4j
 public class MainSceneController {
     @FXML
     public Button connectButton;
@@ -25,7 +23,7 @@ public class MainSceneController {
         } else {
             String serverUrl = serverAddressTextField.textProperty().getValue();
             if (!serverUrl.isBlank()) {
-                log.info(serverUrl);
+                System.out.println(serverUrl);
                 String[] addressPort = serverUrl.split(":", 2);
                 String address = addressPort[0];
                 int port = Integer.parseInt(addressPort[1]);

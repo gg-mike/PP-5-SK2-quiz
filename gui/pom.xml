@@ -7,7 +7,7 @@
     <groupId>put.edu</groupId>
     <artifactId>gui</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>Gui</name>
+    <name>gui</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,16 +19,6 @@
             <groupId>io.reactivex.rxjava3</groupId>
             <artifactId>rxjava</artifactId>
             <version>3.1.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.33</version>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.22</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
