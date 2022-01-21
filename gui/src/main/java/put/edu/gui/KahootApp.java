@@ -27,12 +27,12 @@ public class KahootApp extends Application {
         return kahootApp;
     }
 
-    public Stage getStage() {
-        return stage;
-    }
-
     public static void main(String[] args) {
         launch();
+    }
+
+    public Stage getStage() {
+        return stage;
     }
 
     public void showScene(String sceneFileName) throws IOException {

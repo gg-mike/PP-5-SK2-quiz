@@ -14,6 +14,7 @@ module put.edu.gui {
     opens put.edu.gui.controllers to javafx.fxml;
     opens put.edu.gui.game.messages to com.google.gson;
     opens put.edu.gui to com.google.gson;
+    opens put.edu.gui.game.models to com.google.gson;
 
     opens put.edu.gui.game.messages.requests to com.google.gson;
 
