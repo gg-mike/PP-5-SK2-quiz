@@ -76,7 +76,7 @@
         </GridPane>
     </center>
     <bottom>
-        <GridPane fx:id="joinGameGridPane" BorderPane.alignment="CENTER">
+        <GridPane fx:id="joinGameGridPane" hgap="5.0" vgap="5.0" BorderPane.alignment="CENTER">
             <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" percentWidth="30.0"/>
                 <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" percentWidth="40.0"/>
@@ -88,12 +88,12 @@
             </rowConstraints>
             <TextField fx:id="gameCodeTextField" GridPane.rowIndex="1">
                 <GridPane.margin>
-                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                    <Insets/>
                 </GridPane.margin>
             </TextField>
             <TextField fx:id="usernameTextField" GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <GridPane.margin>
-                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                    <Insets/>
                 </GridPane.margin>
             </TextField>
             <Text strokeType="OUTSIDE" strokeWidth="0.0" text="game number" GridPane.halignment="CENTER"
@@ -103,9 +103,12 @@
             <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
                     onAction="#joinGame" text="JOIN GAME" GridPane.columnIndex="2" GridPane.rowIndex="1">
                 <GridPane.margin>
-                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                    <Insets/>
                 </GridPane.margin>
             </Button>
+            <padding>
+                <Insets top="5.0"/>
+            </padding>
         </GridPane>
     </bottom>
     <padding>
