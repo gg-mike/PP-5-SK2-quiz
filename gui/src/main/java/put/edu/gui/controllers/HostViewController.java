@@ -3,10 +3,13 @@ package put.edu.gui.controllers;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import put.edu.gui.KahootApp;
 import put.edu.gui.game.messages.requests.CreateGameMessage;
+import put.edu.gui.game.messages.requests.StartGameMessage;
+import put.edu.gui.game.messages.responses.AcceptMessage;
 import put.edu.gui.game.models.Question;
 
 import java.io.File;
@@ -18,15 +21,35 @@ import java.util.Optional;
 
 public class HostViewController {
     @FXML
+    public Button startGameButton;
+    @FXML
+    public Button selectFileButton;
+    @FXML
+    public Button nextQuestionButton;
+    @FXML
     public Text playersText;
     @FXML
     public Text answersField;
     private List<Question> questionList;
 
     @FXML
+    public void createGame() {
+        KahootApp.get().sendMessage(new CreateGameMessage());
+        if (KahootApp.get().getMessageObservable().isPresent()) {
+            KahootApp.get().getMessageObservable().get().take(1)
+                    .filter(message -> message instanceof AcceptMessage)
+                    .subscribe(message -> {
+                        if (message instanceof AcceptMessage) {
+                            System.out.println("Game created");
+                        }
+                    }).dispose();
+        }
+    }
+
+    @FXML
     public void startGame() {
         if (Optional.ofNullable(questionList).isPresent()) {
-            KahootApp.get().sendMessage(new CreateGameMessage());
+            KahootApp.get().sendMessage(new StartGameMessage());
         }
     }
 
@@ -49,6 +72,7 @@ public class HostViewController {
         if (Optional.ofNullable(questionList).isPresent()) {
             System.out.println("questions loaded");
             this.questionList = questionList;
+            startGameButton.setVisible(true);
         }
     }
 
