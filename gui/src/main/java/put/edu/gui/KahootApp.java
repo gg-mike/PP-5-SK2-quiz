@@ -5,6 +5,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import put.edu.gui.game.messages.Message;
 import put.edu.gui.serverapi.ServerApi;
@@ -26,6 +27,10 @@ public class KahootApp extends Application {
         return kahootApp;
     }
 
+    public Stage getStage() {
+        return stage;
+    }
+
     public static void main(String[] args) {
         launch();
     }
@@ -37,6 +42,16 @@ public class KahootApp extends Application {
         stage.setResizable(false);
         stage.setTitle("Kahoot!");
         stage.show();
+    }
+
+    public void showPopup(String tile, Scene scene) {
+        stage.setTitle("FileChooser");
+
+        // create a File chooser
+        FileChooser fil_chooser = new FileChooser();
+
+        // set title
+        fil_chooser.setTitle("Select File");
     }
 
     public boolean connect(String address, int port) {
@@ -64,7 +79,6 @@ public class KahootApp extends Application {
             serverApi = null;
         }
     }
-
 
     public void sendMessage(Message message) {
         if (Optional.ofNullable(serverApi).isPresent()) {
