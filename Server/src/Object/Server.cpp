@@ -33,8 +33,8 @@ void Server::Shutdown() {
     LOGINFO("Server: shutdown ended");
 }
 
-void Server::ClientRequest(int clientFd, Enumerators::ClientRequestCode request) {
-    if (request & Enumerators::ClientRequest::SHUTDOWN) {
+void Server::Action(int clientFd, Enumerators::ServerActionCode actionCode) {
+    if (actionCode & Enumerators::ServerAction::CLOSE_CONN) {
         std::unique_lock _{handleMtx};
         clientsToShutdown.insert(clientFd);
         cv.notify_one();
@@ -42,8 +42,10 @@ void Server::ClientRequest(int clientFd, Enumerators::ClientRequestCode request)
 }
 
 void Server::Send(int receiverFd, const std::string &message) const {
-    ssize_t size = std::min(config.bufSize, (long)message.size());
-    IO::Write(receiverFd, message, size);
+    std::string fullMessage = config.messageBegin + message + config.messageEnd + "\n";
+
+    ssize_t size = std::min(config.bufSize, (long)fullMessage.size());
+    IO::Write(receiverFd, fullMessage + "\n", size);
 }
 
 void Server::Init(const std::string &configFile) {
@@ -109,7 +111,9 @@ void Server::ReadConfig(const std::string &configFile) {
         j["port"],
         j["bufSize"],
         j["listenConnNum"],
-        j["maxTimeBetweenHb_sec"]
+        j["maxTimeBetweenHb_sec"],
+        j["messageBegin"],
+        j["messageEnd"]
     };
     ifs.close();
 }

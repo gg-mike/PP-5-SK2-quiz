@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Client.h"
-#include "../Enumerators/ClientRequest.h"
+#include "../Enumerators/ServerAction.h"
 
 class Server {
 public:
@@ -12,6 +12,8 @@ public:
         ssize_t bufSize;
         int listenConnNum;
         int maxTimeBetweenHb_sec;
+        std::string messageBegin;
+        std::string messageEnd;
     };
 
 private:
@@ -34,7 +36,7 @@ public:
     void Run(const std::string& configFile=DEFAULT_CONFIG);
     void Shutdown();
 
-    void ClientRequest(int clientFd, Enumerators::ClientRequestCode request);
+    void Action(int clientFd, Enumerators::ServerActionCode actionCode);
 
     void Send(int receiverFd, const std::string& message) const;
 

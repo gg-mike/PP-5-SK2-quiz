@@ -4,7 +4,11 @@
 
 class Client {
 private:
+    // From server config
     int maxTimeBetweenHb_ms;
+    std::string messageBegin;
+    std::string messageEnd;
+
     std::atomic<bool> running{true};
     std::atomic<int> fd;
     std::atomic<std::chrono::high_resolution_clock::time_point> lastHeartbeat;
