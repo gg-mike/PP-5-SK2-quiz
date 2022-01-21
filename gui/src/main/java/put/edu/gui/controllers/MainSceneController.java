@@ -18,25 +18,19 @@ public class MainSceneController {
 
     @FXML
     public void connectToServer() {
-//        if (KahootApp.get().isConnected()) {
-//            KahootApp.get().disconnect();
-//            connectButton.setText("CONNECT");
-//            serverAddressTextField.setVisible(true);
-//            optionsGridPane.setVisible(true);
-//        } else {
         String serverUrl = serverAddressTextField.textProperty().getValue();
-        if (!serverUrl.isBlank()) {
-            System.out.println(serverUrl);
-            String[] addressPort = serverUrl.split(":", 2);
-            String address = addressPort[0];
-            int port = Integer.parseInt(addressPort[1]);
-            if (KahootApp.get().connect(address, port)) {
-                connectButton.setText("DISCONNECT");
-                serverAddressTextField.setVisible(false);
-                optionsGridPane.setVisible(true);
-            }
+        System.out.println(serverUrl);
+        if (serverUrl.isBlank()) {
+            return;
         }
-//        }
+        String[] addressPort = serverUrl.split(":", 2);
+        String address = addressPort[0];
+        int port = Integer.parseInt(addressPort[1]);
+        if (KahootApp.get().connect(address, port)) {
+            connectButton.setText("DISCONNECT");
+            serverAddressTextField.setVisible(false);
+            optionsGridPane.setVisible(true);
+        }
     }
 
     @FXML
