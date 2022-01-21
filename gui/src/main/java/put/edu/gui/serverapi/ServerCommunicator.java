@@ -4,6 +4,8 @@ import io.reactivex.rxjava3.subjects.Subject;
 import put.edu.gui.game.messages.Message;
 
 public abstract class ServerCommunicator implements Runnable {
+    protected static final String BEGIN_MESSAGE = "<$begin$>";
+    protected static final String END_MESSAGE = "<$end$>";
     private final Thread thread;
     private final Subject<Message> messageSubject;
     private boolean running = false;
@@ -30,4 +32,6 @@ public abstract class ServerCommunicator implements Runnable {
     public boolean isRunning() {
         return running;
     }
+
+
 }

@@ -21,4 +21,12 @@ public abstract class Message {
     public String getDesc() {
         return desc;
     }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "type=" + type +
+                ", desc='" + desc + '\'' +
+                '}';
+    }
 }

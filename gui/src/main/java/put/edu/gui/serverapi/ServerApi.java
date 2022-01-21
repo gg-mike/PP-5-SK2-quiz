@@ -10,7 +10,7 @@ public class ServerApi {
     private final Writer writer;
 
     public ServerApi(String address, int port) throws ConnectException {
-//        log.info("connecting to address: {}, port: {}", address, port);
+        System.out.printf("connecting to address: %s, port: %d%n", address, port);
         try {
             socket = new Socket(address, port);
             reader = new Reader(socket.getInputStream());

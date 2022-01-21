@@ -7,12 +7,11 @@
       xmlns="http://javafx.com/javafx/16" fx:controller="put.edu.gui.controllers.MainSceneController">
     <VBox alignment="CENTER" prefHeight="200.0" prefWidth="200.0">
         <TextField fx:id="serverAddressTextField" text="localhost:3333"/>
-        <Button fx:id="connectButton" alignment="CENTER" contentDisplay="CENTER"
-                maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#connectToServer"
-                text="CONNECT"/>
+        <Button fx:id="connectButton" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308"
+                mnemonicParsing="false" onAction="#connectToServer" text="CONNECT"/>
 
 
-        <GridPane alignment="CENTER">
+        <GridPane fx:id="optionsGridPane" alignment="CENTER" visible="false">
             <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>

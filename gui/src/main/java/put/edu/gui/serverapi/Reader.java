@@ -16,8 +16,6 @@ import java.util.Optional;
 
 public class Reader extends ServerCommunicator {
     private static final String messageClassesPackage = "put.edu.gui.game.messages.responses";
-    private static final String BEGIN_MESSAGE = "<$begin$>";
-    private static final String END_MESSAGE = "<$end$>";
     private final BufferedReader bufferedReader;
 
     public Reader(InputStream inputStream) {

@@ -13,6 +13,7 @@ public class Writer extends ServerCommunicator {
     public Writer(OutputStream outputStream) {
         super(PublishSubject.create());
         this.outputStream = outputStream;
+        this.start();
     }
 
     @Override
@@ -24,6 +25,7 @@ public class Writer extends ServerCommunicator {
     private void sendMessage(Message message) throws IOException {
         System.out.println("Sending message: " + message);
         String json = new Gson().toJson(message);
+        json = BEGIN_MESSAGE + json + END_MESSAGE + "\n";
         System.out.println(json);
         outputStream.write(json.getBytes());
     }
