@@ -41,6 +41,11 @@ void Server::ClientRequest(int clientFd, RequestCode request) {
     }
 }
 
+void Server::Send(int receiverFd, const std::string &message) const {
+    ssize_t size = std::min(config.bufSize, (long)message.size());
+    IO::Write(receiverFd, message, size);
+}
+
 void Server::Init(const std::string &configFile) {
     if (fd != -1) {
         LOGWARNING("Server already initialized!");
@@ -63,6 +68,7 @@ void Server::Init(const std::string &configFile) {
 void Server::AcceptClients() {
     int acc_fd;
     while (running) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         if ((acc_fd = accept(fd, nullptr, nullptr)) >= 0) {
             LOGINFO("Server: accepted connection (fd=", acc_fd, ")");
             std::lock_guard _{clientsMtx};

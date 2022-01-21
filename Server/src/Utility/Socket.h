@@ -14,4 +14,6 @@ namespace Socket {
 
     void Listen(int fd, int connectionNumber);
 
+    void Shutdown(int fd);
+
 }

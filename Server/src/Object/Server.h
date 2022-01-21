@@ -42,6 +42,8 @@ public:
 
     void ClientRequest(int clientFd, RequestCode request);
 
+    void Send(int receiverFd, const std::string& message) const;
+
     [[nodiscard]] Config GetConfig() const { return config; }
 
 private:
