@@ -10,6 +10,7 @@ import put.edu.gui.KahootApp;
 import put.edu.gui.game.messages.requests.CreateGameMessage;
 import put.edu.gui.game.messages.requests.StartGameMessage;
 import put.edu.gui.game.messages.responses.AcceptMessage;
+import put.edu.gui.game.messages.responses.DeclineMessage;
 import put.edu.gui.game.models.Question;
 
 import java.io.File;
@@ -21,6 +22,8 @@ import java.util.Optional;
 
 public class HostViewController {
     @FXML
+    public Button createGameButton;
+    @FXML
     public Button startGameButton;
     @FXML
     public Button selectFileButton;
@@ -30,26 +33,21 @@ public class HostViewController {
     public Text playersText;
     @FXML
     public Text answersField;
-    private List<Question> questionList;
 
     @FXML
     public void createGame() {
         KahootApp.get().sendMessage(new CreateGameMessage());
         if (KahootApp.get().getMessageObservable().isPresent()) {
-            KahootApp.get().getMessageObservable().get().take(1)
+            KahootApp.get().getMessageObservable().get()
                     .filter(message -> message instanceof AcceptMessage)
+                    .take(1)
                     .subscribe(message -> {
                         if (message instanceof AcceptMessage) {
                             System.out.println("Game created");
+                            createGameButton.setVisible(false);
+                            selectFileButton.setVisible(true);
                         }
                     }).dispose();
-        }
-    }
-
-    @FXML
-    public void startGame() {
-        if (Optional.ofNullable(questionList).isPresent()) {
-            KahootApp.get().sendMessage(new StartGameMessage());
         }
     }
 
@@ -71,9 +69,27 @@ public class HostViewController {
         }
         if (Optional.ofNullable(questionList).isPresent()) {
             System.out.println("questions loaded");
-            this.questionList = questionList;
-            startGameButton.setVisible(true);
+            if (KahootApp.get().getMessageObservable().isPresent()) {
+                KahootApp.get().getMessageObservable().get()
+                        .filter(message -> message instanceof AcceptMessage || message instanceof DeclineMessage)
+                        .take(1)
+                        .subscribe(message -> {
+                            if (message instanceof AcceptMessage) {
+                                System.out.println("questions accepted by server");
+                                selectFileButton.setVisible(false);
+                                startGameButton.setVisible(true);
+                            } else {
+                                System.out.println("questions declined by server");
+                            }
+                        }).dispose();
+            }
+
         }
+    }
+
+    @FXML
+    public void startGame() {
+        KahootApp.get().sendMessage(new StartGameMessage());
     }
 
     @FXML
@@ -86,4 +102,5 @@ public class HostViewController {
         KahootApp.get().disconnect();
         KahootApp.get().showScene("main-view.fxml");
     }
+
 }

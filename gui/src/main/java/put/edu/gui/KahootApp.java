@@ -81,15 +81,18 @@ public class KahootApp extends Application {
     }
 
     public void sendMessage(Message message) {
-        if (Optional.ofNullable(serverApi).isPresent()) {
-            serverApi.getWriter().getMessageSubject().onNext(message);
+        if (Optional.ofNullable(serverApi).isEmpty()) {
+            System.out.println("cannot send message because server api is null");
+            return;
         }
+        serverApi.getWriter().getMessageSubject().onNext(message);
     }
 
     public Optional<Observable<Message>> getMessageObservable() {
         if (Optional.ofNullable(serverApi).isPresent()) {
             return Optional.of(serverApi.getReader().getMessageSubject());
         }
+        System.out.println("cannot get messages because server api is null");
         return Optional.empty();
     }
 
