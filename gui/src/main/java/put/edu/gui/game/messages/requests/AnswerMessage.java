@@ -5,9 +5,9 @@ import put.edu.gui.game.messages.MessageType;
 
 public class AnswerMessage extends Message {
     private final int question;
-    private final int answer;
+    private final String answer;
 
-    public AnswerMessage(int question, int answer) {
+    public AnswerMessage(int question, String answer) {
         super(MessageType.ANSWER.getValue());
         this.question = question;
         this.answer = answer;
@@ -17,7 +17,7 @@ public class AnswerMessage extends Message {
         return question;
     }
 
-    public int getAnswer() {
+    public String getAnswer() {
         return answer;
     }
 }

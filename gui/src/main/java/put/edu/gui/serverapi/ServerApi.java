@@ -25,15 +25,14 @@ public class ServerApi {
     }
 
     public void disconnect() {
-//        log.info("disconnecting");
+        System.out.println("disconnecting");
         reader.stop();
-        writer.stop();
         try {
             socket.close();
         } catch (IOException e) {
-//            log.error("socket disconnection error");
+            System.out.println("socket disconnection error");
         }
-//        log.info("disconnecting succeeded");
+        System.out.println("disconnecting succeeded");
     }
 
     public Socket getSocket() {

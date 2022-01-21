@@ -13,12 +13,12 @@ public class Writer extends ServerCommunicator {
     public Writer(OutputStream outputStream) {
         super(PublishSubject.create());
         this.outputStream = outputStream;
-        this.start();
     }
 
     @Override
     public void run() {
-        getMessageSubject().onErrorComplete().blockingSubscribe(this::sendMessage);
+        getMessageSubject().blockingSubscribe(this::sendMessage, throwable -> {
+        });
     }
 
     private void sendMessage(Message message) throws IOException {
@@ -27,5 +27,4 @@ public class Writer extends ServerCommunicator {
         System.out.println(json);
         outputStream.write(json.getBytes());
     }
-
 }

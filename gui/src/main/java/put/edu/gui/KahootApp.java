@@ -34,6 +34,7 @@ public class KahootApp extends Application {
         Parent parent = FXMLLoader.load(Objects.requireNonNull(KahootApp.class.getResource(sceneFileName)));
         Scene scene = new Scene(parent, KahootApp.width, KahootApp.height);
         stage.setScene(scene);
+        stage.setResizable(false);
         stage.setTitle("Kahoot!");
         stage.show();
     }
