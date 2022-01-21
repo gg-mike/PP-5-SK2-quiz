@@ -37,7 +37,8 @@ namespace IO {
     }
 
     void Write(int fd, const std::string& message, ssize_t size) {
-        auto ret = write(fd, message.c_str(), size);
+        std::string m = "<$begin$>" + message + "<$end$>\n";
+        auto ret = write(fd, m.c_str(), std::strlen(m.c_str()));
         if (ret == -1)
             LOGERROR("IO::Write() failed on fd=", fd);
         if (ret != size)

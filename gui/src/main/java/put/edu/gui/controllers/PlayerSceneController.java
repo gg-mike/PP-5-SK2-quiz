@@ -30,6 +30,7 @@ public class PlayerSceneController {
 
     @FXML
     public void exit() throws IOException {
+        KahootApp.get().disconnect();
         KahootApp.get().showScene("main-view.fxml");
     }
 

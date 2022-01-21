@@ -13,6 +13,7 @@ public class Writer extends ServerCommunicator {
     public Writer(OutputStream outputStream) {
         super(PublishSubject.create());
         this.outputStream = outputStream;
+        this.start();
     }
 
     @Override
