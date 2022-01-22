@@ -23,6 +23,7 @@
 #include <thread>
 
 // Other
+#include <algorithm>
 #include <chrono>
 #include <memory>
 #include <random>

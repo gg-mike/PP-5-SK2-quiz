@@ -7,7 +7,7 @@
 
 using nlohmann::json;
 using Json::Field, Json::Test;
-using Enumerators::Request;
+using Enumerators::GameState, Enumerators::Request;
 
 Game::Game(std::shared_ptr<Host> host)
     : host(std::move(host)) {
@@ -26,7 +26,7 @@ void Game::Unlock() {
 
 json Game::AddQuestions(const json &questionsJson) {
     int hostFd = host->GetFd();
-    if (state != CREATED)
+    if (state != GameState::CREATED)
         return Game::GenerateUnexpectedRequest();
 
     Field<json::array_t> array = Test<json::array_t>(questionsJson, "questions", hostFd, Request::ADD_QUESTIONS);
@@ -72,7 +72,7 @@ json Game::AddQuestions(const json &questionsJson) {
     }
 
     if (done) {
-        state = OPENED;
+        state = GameState::OPENED;
         return {
                 {"type", Request::ADD_QUESTIONS | Request::ACCEPT},
                 {"questionsNumber", questions.size()}
@@ -82,7 +82,7 @@ json Game::AddQuestions(const json &questionsJson) {
 }
 
 json Game::Start() {
-    if (state != OPENED)
+    if (state != GameState::OPENED)
         return Game::GenerateUnexpectedRequest();
     else if (players.empty())
         return {
@@ -90,24 +90,24 @@ json Game::Start() {
                 {"desc", "No player joined the game yet"}
         };
 
-    state = STARTED;
-    // TODO: Notify players
+    state = GameState::STARTED;
+    NotifyPlayers();
 
     return {{"type", Request::START_GAME | Request::ACCEPT}};
 }
 
 json Game::End() {
-    if (state == CREATED || state == ROUND_STARTED)
+    if (state == GameState::CREATED || state == GameState::R_STARTED)
         return Game::GenerateUnexpectedRequest();
 
-    state = ENDED;
-    // TODO: Notify players
+    state = GameState::ENDED;
+    NotifyPlayers();
 
     return {{"type", Request::END_GAME | Request::ACCEPT}};
 }
 
 json Game::StartRound() {
-    if (state != STARTED && state != ROUND_ENDED)
+    if (state != GameState::STARTED && state != GameState::R_ENDED)
         return Game::GenerateUnexpectedRequest();
     else if (currentQuestion >= questions.size())
         return {
@@ -115,8 +115,10 @@ json Game::StartRound() {
             {"desc", "No more questions left"}
         };
 
-    state = ROUND_STARTED;
-    // TODO: Notify players
+    state = GameState::R_STARTED;
+    canAnswer = true;
+    answers.clear();
+    NotifyPlayers();
 
     Question currQ = questions.at(currentQuestion);
 
@@ -135,33 +137,67 @@ json Game::StartRound() {
 }
 
 json Game::EndRound() {
-    if (state != ROUND_STARTED)
+    if (state != GameState::R_STARTED)
         return {
                 {"type", Request::END_ROUND | Request::DECLINE},
                 {"desc", "Round haven't been started"}
         };
 
-    state = ROUND_ENDED;
-    // TODO: Notify players
-    currentQuestion++;
+    state = GameState::R_ENDED;
+    canAnswer = false;
 
-    return {{"type", Request::END_ROUND | Request::ACCEPT}};
+    json response = GenerateRanking();
+    NotifyPlayers();
+    response["type"] = Request::END_ROUND | Request::ACCEPT;
+    currentQuestion++;
+    return response;
 }
 
 nlohmann::json Game::HostExit() {
-    state = ENDED;
-    // TODO: Notify players
+    state = GameState::SHUT;
+    NotifyPlayers();
+
+    host->SetStateChange(true);
+    return {{"type", Request::EXIT_GAME | Request::ACCEPT}};
+}
+
+nlohmann::json Game::PlayerAnswered(const std::string &nick, const json &answerJson) {
+    if (!canAnswer) return {{"type", Request::ANSWER | Request::DECLINE}};
+
+    Field<std::string> answer = Test<std::string>(answerJson, "answer", players.at(nick)->GetFd(), Request::ANSWER);
+    if (answer.opStatus != 1) return {};
+
+    if (std::string("ABCD").find(answer.value) == std::string::npos)
+        answers.insert({nick, ""});
+    else
+        answers.insert({nick, answer.value});
+
+    players.at(nick)->SetAnswered(true);
+    players.at(nick)->SetWasCorrectAnswer(answer.value == questions.at(currentQuestion).rightAnswer);
+
+    AllAnsweredCheck();
+
+    return {{"type", Request::ANSWER | Request::ACCEPT}};
+}
+
+nlohmann::json Game::PlayerExit(const std::string &nick) {
+    players.at(nick)->SetStateChange(true);
+
+    players.erase(nick);
+    answers.erase(nick);
+
+    AllAnsweredCheck();
 
     return {{"type", Request::EXIT_GAME | Request::ACCEPT}};
 }
 
 void Game::AddPlayer(const std::shared_ptr<Player>& player) {
-    if (state != OPENED) {
+    if (state != GameState::OPENED) {
         Server::GetInstance()->Send(host->GetFd(), Game::GenerateUnexpectedRequest());
         return;
     }
 
-    players.push_back(player);
+    players.insert({player->GetNick(), player});
 
     Server::GetInstance()->Send(host->GetFd(), {
         {"type", Request::PLAYER_JOINED},
@@ -169,13 +205,66 @@ void Game::AddPlayer(const std::shared_ptr<Player>& player) {
     });
 }
 
-void Game::RemovePlayer(const std::shared_ptr<Player>& player) {
-    players.erase(std::find(players.begin(), players.end(), player));
+json Game::GenerateRanking() {
+    json j{
+        {"results", {{"A", 0}, {"B", 0}, {"C", 0}, {"D", 0}}},
+        {"ranking", {}}
+    };
+
+    for (const auto& [nick, player]: players) {
+        if (answers.contains(nick)) {
+            if (!answers.at(nick).empty())
+                j["results"][answers.at(nick)] = (int)j["results"][answers.at(nick)] + 1;
+            if (players.at(nick)->GetWasCorrectAnswer())
+                players.at(nick)->IncreaseScore(1);
+        }
+        else
+            answers.insert({nick, ""});
+    }
+
+    std::vector<std::shared_ptr<Player>> tmp{};
+    for (const auto& player: players)
+        tmp.push_back(player.second);
+
+    using T = const std::shared_ptr<Player>&;
+    std::sort(tmp.begin(), tmp.end(), [](T a, T b) {
+        return a->GetScore() < b->GetScore();});
+    std::reverse(tmp.begin(), tmp.end());
+
+    tmp.front()->SetPos(1);
+    int prevPos = tmp.front()->GetPos();
+    int prevScore = tmp.front()->GetScore();
+    for (auto& player: tmp) {
+        if (prevScore == player->GetScore()) player->SetPos(prevPos);
+        else {
+            player->SetPos(++prevPos);
+            prevScore = player->GetScore();
+        }
+        j["ranking"] += {
+            {"nick", player->GetNick()},
+            {"pos", player->GetPos()},
+            {"score", player->GetScore()}
+        };
+    }
+    return j;
+}
+
+void Game::AllAnsweredCheck() {
+    if (state == GameState::R_STARTED && players.size() == answers.size()) {
+        Server::GetInstance()->Send(host->GetFd(), {{"type", Request::ALL_ANSWERED}});
+        canAnswer = false;
+    }
+}
+
+void Game::NotifyPlayers() const {
+    for (auto& [nick, player]: players)
+        player->RequestHandler(state);
 }
 
 json Game::GenerateUnexpectedRequest() {
     return {
         {"type", Request::ERROR},
+        {"typeText", "ERROR"},
         {"desc", "Unexpected request type"}
     };
 }

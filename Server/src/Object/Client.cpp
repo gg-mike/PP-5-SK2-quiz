@@ -18,8 +18,8 @@ Client::Client(int fd)
     maxTimeBetweenHb_ms = Server::GetInstance()->GetConfig().maxTimeBetweenHb_sec * 1000;
     messageBegin = Server::GetInstance()->GetConfig().messageBegin;
     messageEnd = Server::GetInstance()->GetConfig().messageEnd;
-    heartbeatThread = std::thread(&Client::CheckHeartbeat, this);
-    readerThread = std::thread(&Client::ReadMessages, this);
+    heartbeatThread = std::thread(&Client::HeartbeatHandler, this);
+    messageThread = std::thread(&Client::MessageHandler, this);
 }
 
 void Client::Shutdown() {
@@ -27,11 +27,11 @@ void Client::Shutdown() {
     SendShutdownMessage();
     Socket::Shutdown(fd);
     heartbeatThread.join();
-    readerThread.join();
+    messageThread.join();
     LOGINFO("Client #", fd, ": connection closed");
 }
 
-void Client::CheckHeartbeat() {
+void Client::HeartbeatHandler() {
     while (running) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -47,7 +47,7 @@ void Client::CheckHeartbeat() {
     }
 }
 
-void Client::ReadMessages() {
+void Client::MessageHandler() {
     ssize_t rc;
     std::string buffer;
     while (running) {
@@ -96,6 +96,11 @@ void Client::ReadMessages() {
 }
 
 void Client::ProcessRequest(const json &request) {
+    if (gameParticipantStateChange) {
+        gameParticipant.reset();
+        gameParticipantStateChange = false;
+    }
+
     Json::Field<int> type = Json::Test<int>(request, "type", fd, Request::NONE);
     if (type.opStatus != 1) return;
 
@@ -107,7 +112,7 @@ void Client::ProcessRequest(const json &request) {
         json response{};
         switch (type.value) {
             case Request::CREATE_GAME: {
-                gameParticipant = std::make_shared<Host>(fd);
+                gameParticipant = std::make_shared<Host>(fd, gameParticipantStateChange);
                 int gameCode = Database::GetInstance()->CreateNewGame(std::dynamic_pointer_cast<Host>(gameParticipant));
                 std::dynamic_pointer_cast<Host>(gameParticipant)->SetGameCode(gameCode);
                 response = {
@@ -132,16 +137,15 @@ void Client::ProcessRequest(const json &request) {
                 else if (!Database::GetInstance()->NickFree(gameCode.value, nick.value))
                     response = {
                             {"type", Request::JOIN_GAME | Request::DECLINE},
-                            {"desc", "Nick \"" + nick.value + "\" is taken"}
+                            {"desc", "Nick '" + nick.value + "' is taken"}
                     };
                 else {
-                    gameParticipant = std::make_shared<Player>(fd, gameCode.value, nick.value);
+                    gameParticipant = std::make_shared<Player>(fd, gameParticipantStateChange, gameCode.value, nick.value);
                     Database::GetInstance()->JoinGame(gameCode.value, std::dynamic_pointer_cast<Player>(gameParticipant));
                     response = {
                             {"type", Request::JOIN_GAME | Request::ACCEPT},
-                            {"desc", "Joined game #" + std::to_string(gameCode.value) + " with nick \"" +
-                                     nick.value +
-                                     "\""}
+                            {"desc", "Joined game #" + std::to_string(gameCode.value) +
+                                     " with nick '" + nick.value + "'"}
                     };
                 }
                 break;

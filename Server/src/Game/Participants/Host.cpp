@@ -1,12 +1,14 @@
 #include "pch.h"
 #include "Host.h"
+
 #include "Enumerators/Request.h"
 #include "Object/Database.h"
 
 using nlohmann::json;
 using Enumerators::Request;
 
-Host::Host(int fd) : fd(fd) {}
+Host::Host(int fd, std::atomic<bool>& stateChange)
+    : fd(fd), stateChange(stateChange) {}
 
 json Host::Process(Request type, const json& request) {
     auto db = Database::GetInstance();
