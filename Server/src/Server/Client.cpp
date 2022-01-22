@@ -25,7 +25,8 @@ Client::Client(int fd)
 void Client::Shutdown() {
     running = false;
     json response = ExitFromGame();
-    if (!response.empty()) Server::GetInstance()->Send(fd, response);
+    if (!response.empty())
+        Server::GetInstance()->Send(fd, response);
     SendShutdownMessage();
     Socket::Shutdown(fd);
     heartbeatThread.join();
@@ -190,14 +191,16 @@ void Client::SendShutdownMessage() const {
 }
 
 nlohmann::json Client::ExitFromGame() {
+    json response{};
     if (gameParticipant != nullptr) {
         if (gameParticipant->GetType() == 1)
-            return Database::GetInstance()->HostExit(
+            response = Database::GetInstance()->HostExit(
                     std::dynamic_pointer_cast<Host>(gameParticipant)->GetGameCode());
         else if (gameParticipant->GetType() == 2)
-            return Database::GetInstance()->PlayerExit(
+            response = Database::GetInstance()->PlayerExit(
                     std::dynamic_pointer_cast<Player>(gameParticipant)->GetGameCode(),
                     std::dynamic_pointer_cast<Player>(gameParticipant)->GetNick());
+        gameParticipant = nullptr;
     }
-    return {};
+    return response;
 }
