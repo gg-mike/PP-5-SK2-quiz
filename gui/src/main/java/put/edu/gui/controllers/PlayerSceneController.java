@@ -11,6 +11,7 @@ import put.edu.gui.game.messages.MessageType;
 import put.edu.gui.game.messages.requests.AnswerMessage;
 import put.edu.gui.game.messages.requests.RequestJoinGameMessage;
 import put.edu.gui.game.messages.responses.GameShutdownMessage;
+import put.edu.gui.game.messages.responses.RoundEndedMessage;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class PlayerSceneController {
@@ -20,6 +21,8 @@ public class PlayerSceneController {
     public TextField usernameTextField;
     @FXML
     public Text infoText;
+    @FXML
+    public Text statisticsText;
     @FXML
     public GridPane optionsGridPane;
     @FXML
@@ -73,9 +76,7 @@ public class PlayerSceneController {
                 });
         KahootApp.get().getMessageObservable()
                 .filter(message -> (MessageType.GAME_STARTED.getValue() & message.getType()) == MessageType.GAME_STARTED.getValue())
-                .subscribe(message -> {
-                    infoText.setText("game started");
-                });
+                .subscribe(message -> infoText.setText("game started"));
         KahootApp.get().getMessageObservable()
                 .filter(message -> (MessageType.ROUND_STARTED.getValue() & message.getType()) == MessageType.ROUND_STARTED.getValue())
                 .subscribe(message -> {
@@ -88,6 +89,16 @@ public class PlayerSceneController {
                     GameShutdownMessage gameShutdownMessage = (GameShutdownMessage) message;
                     infoText.setText("Game ended, score: " + gameShutdownMessage.getScore() +
                             "place in ranking: " + gameShutdownMessage.getPlaceInRanking());
+                });
+
+        KahootApp.get().getMessageObservable()
+                .filter(message -> message instanceof RoundEndedMessage)
+                .subscribe(message -> {
+                    RoundEndedMessage roundEndedMessage = (RoundEndedMessage) message;
+                    infoText.setText("round ended");
+                    statisticsText.setText("Place: " + roundEndedMessage.getPlaceInRanking() +
+                            "Score: " + roundEndedMessage.getScore() +
+                            "Last answer was: " + (roundEndedMessage.isWasCorrectAnswer() ? "correct" : "bad"));
                 });
     }
 }
