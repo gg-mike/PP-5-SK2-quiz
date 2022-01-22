@@ -5,14 +5,14 @@ import put.edu.gui.game.models.RankingRecord;
 
 import java.util.List;
 
-public class AllAnsweredMessage extends Message {
+public class EndRoundMessage extends Message {
     private final int A;
     private final int B;
     private final int C;
     private final int D;
     private final List<RankingRecord> ranking;
 
-    public AllAnsweredMessage(int type, int a, int b, int c, int d, List<RankingRecord> ranking) {
+    public EndRoundMessage(int type, int a, int b, int c, int d, List<RankingRecord> ranking) {
         super(type);
         A = a;
         B = b;
@@ -39,16 +39,5 @@ public class AllAnsweredMessage extends Message {
 
     public List<RankingRecord> getRanking() {
         return ranking;
-    }
-
-    @Override
-    public String toString() {
-        return "AllAnsweredMessage{" +
-                "A=" + A +
-                ", B=" + B +
-                ", C=" + C +
-                ", D=" + D +
-                ", ranking=" + ranking +
-                '}';
     }
 }

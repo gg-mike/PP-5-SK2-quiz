@@ -75,7 +75,7 @@ public class Reader extends ServerCommunicator {
     private Optional<Message> convertToMessage(String jsonString) throws ClassNotFoundException {
         Message message = new Gson().fromJson(jsonString, ResponseMessage.class);
         for (MessageTypePair messageTypePair : MessageTypePair.values()) {
-            if ((message.getType() & messageTypePair.getMessageType()) == messageTypePair.getMessageType()) {
+            if ((message.getType()) == messageTypePair.getMessageType()) {
                 message = (Message) new Gson().fromJson(jsonString, getClassByName(messageTypePair.toString()));
                 return Optional.ofNullable(message);
             }
