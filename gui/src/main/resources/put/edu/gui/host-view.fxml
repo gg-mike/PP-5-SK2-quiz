@@ -77,7 +77,7 @@
                         <Font size="14.0" />
                     </font>
                 </Text>
-                <Text fx:id="answersField" strokeType="OUTSIDE" strokeWidth="0.0" text="Answers:">
+                <Text fx:id="answersText" strokeType="OUTSIDE" strokeWidth="0.0" text="Answers:">
                     <font>
                         <Font size="14.0" />
                     </font>

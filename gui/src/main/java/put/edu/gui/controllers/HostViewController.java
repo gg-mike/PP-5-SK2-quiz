@@ -13,6 +13,7 @@ import put.edu.gui.KahootApp;
 import put.edu.gui.game.messages.MessageType;
 import put.edu.gui.game.messages.requests.*;
 import put.edu.gui.game.messages.responses.CreateGameMessage;
+import put.edu.gui.game.messages.responses.CurrentResultsMessage;
 import put.edu.gui.game.messages.responses.EndRoundMessage;
 import put.edu.gui.game.messages.responses.StartRoundMessage;
 import put.edu.gui.game.models.Question;
@@ -41,14 +42,14 @@ public class HostViewController {
     @FXML
     public Text playersText;
     @FXML
-    public Text answersField;
+    public Text answersText;
     @FXML
     public Text questionText;
     @FXML
     BarChart<String, Number> barChart;
-    private int playerCount;
-    private int playerAnsweredCount;
-    private int questionsCount;
+    private int playerCount = 0;
+    private int playerAnsweredCount = 0;
+    private int questionsCount = 0;
     private int questionNumber;
 
     public HostViewController() {
@@ -132,13 +133,12 @@ public class HostViewController {
                 });
         KahootApp.get().getMessageObservable()
                 .filter(message -> (message.getType() & MessageType.START_GAME.getValue()) == MessageType.START_GAME.getValue())
-                .take(1)
                 .subscribe(message -> {
                     if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
                         System.out.println("game started");
                         startGameButton.setVisible(false);
                         nextQuestionButton.setVisible(true);
-                    } else {
+                    } else if ((message.getType() & MessageType.DECLINE.getValue()) == MessageType.DECLINE.getValue()) {
                         System.out.println("start game declined");
                         Platform.runLater(() -> KahootApp.get().showPopupWindow("start game declined", message.getDesc()));
                     }
@@ -163,6 +163,7 @@ public class HostViewController {
                 .filter(message -> (message.getType() & MessageType.ALL_ANSWERED.getValue()) == MessageType.ALL_ANSWERED.getValue())
                 .subscribe(message -> {
                     endRoundButton.setVisible(false);
+                    nextQuestionButton.setVisible(true);
                     KahootApp.get().sendMessage(new RequestEndRoundMessage());
                 });
 
@@ -176,20 +177,13 @@ public class HostViewController {
                     series.getData().add(new XYChart.Data<>("D", ((EndRoundMessage) message).getD()));
                     Platform.runLater(() -> updateBarChart(series));
                 });
-//        KahootApp.get().getMessageObservable()
-//                .filter(message -> message instanceof AllAnsweredMessage)
-//                .subscribe(message -> {
-//                    XYChart.Series<String, Number> series = new XYChart.Series<>();
-////                    series.getData().add(new XYChart.Data<>("A", ((AllAnsweredMessage) message).getA()));
-////                    series.getData().add(new XYChart.Data<>("B", ((AllAnsweredMessage) message).getB()));
-////                    series.getData().add(new XYChart.Data<>("C", ((AllAnsweredMessage) message).getC()));
-////                    series.getData().add(new XYChart.Data<>("D", ((AllAnsweredMessage) message).getD()));
-//                    series.getData().add(new XYChart.Data<>("A", 15));
-//                    series.getData().add(new XYChart.Data<>("B", 33));
-//                    series.getData().add(new XYChart.Data<>("C", 2));
-//                    series.getData().add(new XYChart.Data<>("D", 5));
-//                    Platform.runLater(() -> updateBarChart(series));
-//                });
+        KahootApp.get().getMessageObservable()
+                .filter(message -> message instanceof CurrentResultsMessage)
+                .subscribe(message -> {
+                    CurrentResultsMessage currentResultsMessage = (CurrentResultsMessage) message;
+                    playerAnsweredCount = currentResultsMessage.getNumberOfAnswers();
+                    answersText.setText("Answers: " + currentResultsMessage.getNumberOfAnswers());
+                });
     }
 
     private void updateBarChart(XYChart.Series<String, Number> series) {
