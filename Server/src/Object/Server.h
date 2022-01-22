@@ -38,7 +38,7 @@ public:
 
     void Action(int clientFd, Enumerators::ServerActionCode actionCode);
 
-    void Send(int receiverFd, const std::string& message) const;
+    void Send(int receiverFd, const nlohmann::json& message, int offset = 2) const;
 
     [[nodiscard]] Config GetConfig() const { return config; }
 

@@ -41,8 +41,8 @@ void Server::Action(int clientFd, Enumerators::ServerActionCode actionCode) {
     }
 }
 
-void Server::Send(int receiverFd, const std::string &message) const {
-    std::string fullMessage = config.messageBegin + message + config.messageEnd + "\n";
+void Server::Send(int receiverFd, const nlohmann::json& message, int offset) const {
+    std::string fullMessage = config.messageBegin + message.dump(offset) + config.messageEnd + "\n";
 
     ssize_t size = std::min(config.bufSize, (long)fullMessage.size());
     IO::Write(receiverFd, fullMessage + "\n", size);

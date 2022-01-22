@@ -67,17 +67,17 @@ void Client::ReadMessages() {
             auto requestStart = buffer.find(messageBegin);
             auto requestEnd = buffer.find(messageEnd);
             if (requestStart == std::string::npos) {
-                Server::GetInstance()->Send(fd, json{
+                Server::GetInstance()->Send(fd, {
                         {"type", Request::ERROR},
                         {"desc", "Request wasn't properly started"}
-                }.dump(4));
+                });
                 continue;
             }
             else if (requestEnd == std::string::npos) {
-                Server::GetInstance()->Send(fd, json{
+                Server::GetInstance()->Send(fd, {
                         {"type", Request::ERROR},
                         {"desc", "Request wasn't properly ended"}
-                }.dump(4));
+                });
                 continue;
             }
 
@@ -85,11 +85,11 @@ void Client::ReadMessages() {
                 std::string message = buffer.substr(requestStart + messageBegin.size(), requestEnd - requestStart - messageBegin.size());
                 ProcessRequest(json::parse(message));
             } catch (json::exception& exception) {
-                Server::GetInstance()->Send(fd, json{
+                Server::GetInstance()->Send(fd, {
                         {"type", Request::ERROR},
                         {"desc", "json.exception.parse_error"},
                         {"exceptionMessage", exception.what()}
-                }.dump(4));
+                });
             }
         }
     }
@@ -147,24 +147,24 @@ void Client::ProcessRequest(const json &request) {
                 break;
             }
             case Request::EXIT: {
-                Server::GetInstance()->Send(fd, json{
-                        {"type", Request::EXIT | Request::ACCEPT}}.dump(4));
+                Server::GetInstance()->Send(fd, {{"type", Request::EXIT | Request::ACCEPT}});
                 Server::GetInstance()->Action(fd, ServerAction::CLOSE_CONN);
                 return;
             }
             default:
                 response = {
                         {"type", Request::ERROR},
-                        {"desc", "Expected CREATE_GAME or JOIN_GAME"}
+                        {"desc", "Expected CREATE_GAME, JOIN_GAME or EXIT"}
                 };
         }
-        Server::GetInstance()->Send(fd, response.dump(4));
+        Server::GetInstance()->Send(fd, response);
         return;
     }
-    json response{gameParticipant->Process(static_cast<Request>(type.value), request)};
-    Server::GetInstance()->Send(fd, response.dump(4));
+    json response = gameParticipant->Process(static_cast<Request>(type.value), request);
+    if (!response.empty())
+        Server::GetInstance()->Send(fd, response);
 }
 
 void Client::SendShutdownMessage() const {
-    Server::GetInstance()->Send(fd, json{{"text", "Connection closed"}}.dump(4));
+    Server::GetInstance()->Send(fd, {{"text", "Connection closed"}});
 }
