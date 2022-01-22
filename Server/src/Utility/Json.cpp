@@ -40,13 +40,13 @@ namespace Json {
     bool GenerateResponse(const Field<int>& field, nlohmann::json& response, Enumerators::RequestCode errorCode) {
         switch(field.opStatus) {
             case -1:
-                response = nlohmann::json {
+                response = {
                         {"type", errorCode},
                         {"desc", "Field <" + field.name + "> not found"}
                 };
                 return true;
             case 0:
-                response = nlohmann::json {
+                response = {
                         {"type", errorCode},
                         {"desc", "Field <" + field.name + "> should be type int"}
                 };
@@ -60,13 +60,13 @@ namespace Json {
     bool GenerateResponse(const Field<std::string>& field, nlohmann::json& response, Enumerators::RequestCode errorCode) {
         switch(field.opStatus) {
             case -1:
-                response = nlohmann::json {
+                response = {
                         {"type", errorCode},
                         {"desc", "Field <" + field.name + "> not found"}
                 };
                 return true;
             case 0:
-                response = nlohmann::json {
+                response = {
                         {"type", errorCode},
                         {"desc", "Field <" + field.name + "> should be type string"}
                 };
@@ -80,13 +80,13 @@ namespace Json {
     bool GenerateResponse(const Field<nlohmann::json::array_t>& field, nlohmann::json& response, Enumerators::RequestCode errorCode) {
         switch(field.opStatus) {
             case -1:
-                response = nlohmann::json {
+                response = {
                         {"type", errorCode},
                         {"desc", "Field <" + field.name + "> not found"}
                 };
                 return true;
             case 0:
-                response = nlohmann::json {
+                response = {
                         {"type", errorCode},
                         {"desc", "Field <" + field.name + "> should be type array"}
                 };

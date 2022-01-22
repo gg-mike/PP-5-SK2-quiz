@@ -157,16 +157,16 @@ nlohmann::json Game::HostExit() {
 
 void Game::AddPlayer(const std::shared_ptr<Player>& player) {
     if (state != OPENED) {
-        Server::GetInstance()->Send(host->GetFd(), Game::GenerateUnexpectedRequest().dump(4));
+        Server::GetInstance()->Send(host->GetFd(), Game::GenerateUnexpectedRequest());
         return;
     }
 
     players.push_back(player);
 
-    Server::GetInstance()->Send(host->GetFd(), json{
+    Server::GetInstance()->Send(host->GetFd(), {
         {"type", Request::PLAYER_JOINED},
         {"nick", player->GetNick()}
-    }.dump(4));
+    });
 }
 
 void Game::RemovePlayer(const std::shared_ptr<Player>& player) {
