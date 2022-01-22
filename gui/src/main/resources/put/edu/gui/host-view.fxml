@@ -30,7 +30,7 @@
             <Button fx:id="startGameButton" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#startGame" text="START GAME" visible="false" GridPane.columnIndex="2" />
             <Button fx:id="nextQuestionButton" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#nextQuestion" text="NEXT QUESTION" visible="false" GridPane.columnIndex="4" />
             <Button fx:id="createGameButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#createGame" text="CREATE GAME" />
-         <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#endRound" text="END ROUND" visible="false" GridPane.columnIndex="3">
+         <Button fx:id="endRoundButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#endRound" text="END ROUND" visible="false" GridPane.columnIndex="3">
             <font>
                <Font size="14.0" />
             </font>
