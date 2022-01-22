@@ -32,10 +32,11 @@ public class HostViewController {
     @FXML
     public Button nextQuestionButton;
     @FXML
+    public Text gameCodeText;
+    @FXML
     public Text playersText;
     @FXML
     public Text answersField;
-    private int gameCode;
 
     @FXML
     public void createGame() {
@@ -47,7 +48,7 @@ public class HostViewController {
                     .subscribe(message -> {
                         if (message instanceof CreateGameMessage createGameMessage) {
                             System.out.println("Game created");
-                            gameCode = createGameMessage.getGameCode();
+                            gameCodeText.setText("Game code: " + createGameMessage.getGameCode());
                             createGameButton.setVisible(false);
                             selectFileButton.setVisible(true);
                         } else {

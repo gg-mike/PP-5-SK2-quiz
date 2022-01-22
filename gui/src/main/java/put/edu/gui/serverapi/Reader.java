@@ -44,9 +44,9 @@ public class Reader extends ServerCommunicator {
                 System.out.println("Message read: " + message);
                 getMessageSubject().onNext(message);
             } catch (ClassNotFoundException classNotFoundException) {
-                System.out.println("Received invalid message cannot find message class");
+                System.err.println("Received invalid message cannot find message class");
             } catch (Exception e) {
-                System.out.println("Received invalid message");
+                System.err.println("Received invalid message");
             }
         }
     }
