@@ -4,14 +4,18 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.reactivex.rxjava3.disposables.Disposable;
 import javafx.fxml.FXML;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import put.edu.gui.KahootApp;
 import put.edu.gui.game.messages.MessageType;
 import put.edu.gui.game.messages.requests.AddQuestionsMessage;
+import put.edu.gui.game.messages.requests.EndRoundMessage;
 import put.edu.gui.game.messages.requests.RequestCreateGameMessage;
 import put.edu.gui.game.messages.requests.StartGameMessage;
+import put.edu.gui.game.messages.responses.AllAnsweredMessage;
 import put.edu.gui.game.messages.responses.CreateGameMessage;
 import put.edu.gui.game.models.Question;
 
@@ -36,6 +40,15 @@ public class HostViewController {
     public Text playersText;
     @FXML
     public Text answersField;
+    @FXML
+    BarChart<String, Integer> barChart;
+    private int questionsCount;
+
+    public HostViewController() {
+        barChart.setTitle("Statistics");
+
+
+    }
 
     @FXML
     public void createGame() {
@@ -75,6 +88,7 @@ public class HostViewController {
             System.out.println("Failed to load questions");
         }
         if (Optional.ofNullable(questionList).isPresent()) {
+            questionsCount = questionList.size();
             System.out.println("questions loaded");
             KahootApp.get().sendMessage(new AddQuestionsMessage(questionList));
             if (KahootApp.get().getMessageObservable().isPresent()) {
@@ -91,7 +105,6 @@ public class HostViewController {
                             }
                         });
             }
-
         }
     }
 
@@ -102,13 +115,30 @@ public class HostViewController {
 
     @FXML
     public void nextQuestion() {
+        KahootApp.get().sendMessage(new EndRoundMessage());
+        if (KahootApp.get().getMessageObservable().isPresent()) {
+            Disposable result = KahootApp.get().getMessageObservable().get()
+                    .filter(message -> message instanceof AllAnsweredMessage)
+                    .take(1)
+                    .subscribe(message -> {
+                        XYChart.Series<String, Integer> series = new XYChart.Series<>();
 
+                        series.getData().add(new XYChart.Data<>("A", ((AllAnsweredMessage) message).getA()));
+                        series.getData().add(new XYChart.Data<>("B", ((AllAnsweredMessage) message).getB()));
+                        series.getData().add(new XYChart.Data<>("C", ((AllAnsweredMessage) message).getC()));
+                        series.getData().add(new XYChart.Data<>("D", ((AllAnsweredMessage) message).getD()));
+
+                        barChart.getData().clear();
+                        barChart.getData().add(series);
+
+                    });
+        }
     }
 
     @FXML
     public void exit() {
         KahootApp.get().disconnect();
-//        KahootApp.get().showScene("main-view.fxml");
+
     }
 
 }
