@@ -23,7 +23,7 @@ namespace Json {
         Field<T> field = Get<T>(json, fieldName);
         nlohmann::json response;
         if (Json::GenerateResponse<>(field, response, requestCode | Enumerators::Request::ERROR))
-            Server::GetInstance()->Send(fd, response.dump(4));
+            Server::GetInstance()->Send(fd, response);
         return field;
     }
 
