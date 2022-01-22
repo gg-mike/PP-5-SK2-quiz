@@ -1,19 +1,17 @@
 package put.edu.gui.controllers;
 
+import io.reactivex.rxjava3.disposables.Disposable;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import put.edu.gui.KahootApp;
-import put.edu.gui.game.Game;
-import put.edu.gui.game.messages.Message;
 import put.edu.gui.game.messages.MessageType;
 import put.edu.gui.game.messages.requests.AnswerMessage;
 import put.edu.gui.game.messages.requests.JoinGameMessage;
 
 import java.io.IOException;
-import java.util.Optional;
 
 public class PlayerSceneController {
     @FXML
@@ -24,27 +22,27 @@ public class PlayerSceneController {
     public GridPane optionsGridPane;
     @FXML
     public GridPane joinGameGridPane;
-    private Game game;
+    private int gameCode;
 
 
     @FXML
     public void joinGame() {
         try {
             String username = usernameTextField.getText();
-            int gameCode = Integer.parseInt(gameCodeTextField.getText());
+            gameCode = Integer.parseInt(gameCodeTextField.getText());
             KahootApp.get().sendMessage(new JoinGameMessage(gameCode, username));
             if (KahootApp.get().getMessageObservable().isPresent()) {
-                Message responseMessage = KahootApp.get()
-                        .getMessageObservable()
-                        .get()
-                        .filter(message -> (message.getType() & MessageType.JOIN_GAME.getValue()) == MessageType.JOIN_GAME.getValue())
-                        .blockingFirst();
-                if ((responseMessage.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
-                    optionsGridPane.setVisible(true);
-                    joinGameGridPane.setVisible(false);
-                } else {
-                    System.out.println("Failed to join game: " + gameCode);
-                }
+                Disposable result = KahootApp.get().getMessageObservable().get()
+                        .filter(message -> message instanceof JoinGameMessage)
+                        .take(1)
+                        .subscribe(message -> {
+                            if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
+                                optionsGridPane.setVisible(true);
+                                joinGameGridPane.setVisible(false);
+                            } else {
+                                System.out.println("Failed to join game: " + gameCode);
+                            }
+                        });
             }
         } catch (Exception e) {
             System.out.println("bad join game data");
@@ -61,7 +59,6 @@ public class PlayerSceneController {
 
     @FXML
     public void exit() throws IOException {
-        Optional.ofNullable(game).ifPresent(Game::stop);
         KahootApp.get().disconnect();
         KahootApp.get().showScene("main-view.fxml");
     }

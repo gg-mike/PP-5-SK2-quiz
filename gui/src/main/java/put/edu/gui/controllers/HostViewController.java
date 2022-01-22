@@ -8,7 +8,6 @@ import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import put.edu.gui.KahootApp;
-import put.edu.gui.game.Game;
 import put.edu.gui.game.messages.MessageType;
 import put.edu.gui.game.messages.requests.AddQuestionsMessage;
 import put.edu.gui.game.messages.requests.RequestCreateGameMessage;
@@ -36,7 +35,7 @@ public class HostViewController {
     public Text playersText;
     @FXML
     public Text answersField;
-    private Game game;
+    private int gameCode;
 
     @FXML
     public void createGame() {
@@ -48,7 +47,7 @@ public class HostViewController {
                     .subscribe(message -> {
                         if (message instanceof CreateGameMessage createGameMessage) {
                             System.out.println("Game created");
-                            game = new Game(createGameMessage.getGameCode());
+                            gameCode = createGameMessage.getGameCode();
                             createGameButton.setVisible(false);
                             selectFileButton.setVisible(true);
                         } else {
@@ -108,7 +107,6 @@ public class HostViewController {
 
     @FXML
     public void exit() throws IOException {
-        Optional.ofNullable(game).ifPresent(Game::stop);
         KahootApp.get().disconnect();
         KahootApp.get().showScene("main-view.fxml");
     }
