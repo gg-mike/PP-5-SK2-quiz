@@ -2,6 +2,7 @@ package put.edu.gui.controllers;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
@@ -80,9 +81,6 @@ public class HostViewController {
     @FXML
     public void startGame() {
         KahootApp.get().sendMessage(new StartGameMessage());
-        startGameButton.setVisible(false);
-        nextQuestionButton.setVisible(true);
-        endRoundButton.setVisible(true);
     }
 
     @FXML
@@ -122,6 +120,19 @@ public class HostViewController {
                         startGameButton.setVisible(true);
                     } else {
                         System.out.println("questions declined by server");
+                    }
+                });
+        KahootApp.get().getMessageObservable()
+                .filter(message -> (message.getType() & MessageType.START_GAME.getValue()) == MessageType.START_GAME.getValue())
+                .subscribe(message -> {
+                    if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
+                        System.out.println("game started");
+                        startGameButton.setVisible(false);
+                        nextQuestionButton.setVisible(true);
+                        endRoundButton.setVisible(true);
+                    } else {
+                        System.out.println("start game declined");
+                        Platform.runLater(() -> KahootApp.get().showPopupWindow("start game declined", message.getDesc()));
                     }
                 });
         KahootApp.get().getMessageObservable()

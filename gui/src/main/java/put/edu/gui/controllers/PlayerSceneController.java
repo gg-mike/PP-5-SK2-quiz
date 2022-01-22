@@ -10,7 +10,6 @@ import put.edu.gui.KahootApp;
 import put.edu.gui.game.messages.MessageType;
 import put.edu.gui.game.messages.requests.AnswerMessage;
 import put.edu.gui.game.messages.requests.RequestJoinGameMessage;
-import put.edu.gui.game.messages.responses.JoinGameMessage;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class PlayerSceneController {
@@ -60,7 +59,7 @@ public class PlayerSceneController {
 
     private void initSubscriptions() {
         KahootApp.get().getMessageObservable()
-                .filter(message -> message instanceof JoinGameMessage)
+                .filter(message -> (MessageType.JOIN_GAME.getValue() & message.getType()) == MessageType.JOIN_GAME.getValue())
                 .subscribe(message -> {
                     if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
                         System.out.println("joined game: " + gameCode);
@@ -75,11 +74,6 @@ public class PlayerSceneController {
                 .filter(message -> (MessageType.GAME_STARTED.getValue() & message.getType()) == MessageType.GAME_STARTED.getValue())
                 .subscribe(message -> {
                     infoText.setText("game started");
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> (MessageType.JOIN_GAME.getValue() & message.getType()) == MessageType.JOIN_GAME.getValue())
-                .subscribe(message -> {
-                    joinGameGridPane.setVisible(false);
                 });
         KahootApp.get().getMessageObservable()
                 .filter(message -> (MessageType.ROUND_STARTED.getValue() & message.getType()) == MessageType.ROUND_STARTED.getValue())
