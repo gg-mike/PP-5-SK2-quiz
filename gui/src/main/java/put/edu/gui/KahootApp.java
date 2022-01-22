@@ -2,6 +2,7 @@ package put.edu.gui;
 
 import io.reactivex.rxjava3.core.Observable;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -9,6 +10,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import put.edu.gui.controllers.PopupController;
 import put.edu.gui.game.messages.Message;
+import put.edu.gui.game.messages.ServerErrorMessage;
 import put.edu.gui.serverapi.ServerApi;
 
 import java.io.IOException;
@@ -76,6 +78,11 @@ public class KahootApp extends Application {
         try {
             serverApi = new ServerApi(address, port);
             System.out.println("connected");
+            getMessageObservable().subscribe(message -> {
+                if (message instanceof ServerErrorMessage) {
+                    Platform.runLater(this::disconnect);
+                }
+            });
         } catch (ConnectException e) {
             System.err.println("connection failed");
             return false;
@@ -110,12 +117,12 @@ public class KahootApp extends Application {
         serverApi.getWriter().getMessageSubject().onNext(message);
     }
 
-    public Optional<Observable<Message>> getMessageObservable() {
+    public Observable<Message> getMessageObservable() {
         if (Optional.ofNullable(serverApi).isPresent()) {
-            return Optional.of(serverApi.getReader().getMessageSubject());
+            return serverApi.getReader().getMessageSubject();
         }
         System.err.println("cannot get messages because server api is null");
-        return Optional.empty();
+        return null;
     }
 
     @Override

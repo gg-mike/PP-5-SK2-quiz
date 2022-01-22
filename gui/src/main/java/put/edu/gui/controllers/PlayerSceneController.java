@@ -31,19 +31,17 @@ public class PlayerSceneController {
             String username = usernameTextField.getText();
             gameCode = Integer.parseInt(gameCodeTextField.getText());
             KahootApp.get().sendMessage(new JoinGameMessage(gameCode, username));
-            if (KahootApp.get().getMessageObservable().isPresent()) {
-                Disposable result = KahootApp.get().getMessageObservable().get()
-                        .filter(message -> message instanceof JoinGameMessage)
-                        .take(1)
-                        .subscribe(message -> {
-                            if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
-                                optionsGridPane.setVisible(true);
-                                joinGameGridPane.setVisible(false);
-                            } else {
-                                System.out.println("Failed to join game: " + gameCode);
-                            }
-                        });
-            }
+            Disposable result = KahootApp.get().getMessageObservable()
+                    .filter(message -> message instanceof JoinGameMessage)
+                    .take(1)
+                    .subscribe(message -> {
+                        if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
+                            optionsGridPane.setVisible(true);
+                            joinGameGridPane.setVisible(false);
+                        } else {
+                            System.out.println("Failed to join game: " + gameCode);
+                        }
+                    });
         } catch (Exception e) {
             System.out.println("bad join game data");
         }

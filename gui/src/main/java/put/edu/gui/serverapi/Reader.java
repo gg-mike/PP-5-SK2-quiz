@@ -2,9 +2,9 @@ package put.edu.gui.serverapi;
 
 import com.google.gson.Gson;
 import io.reactivex.rxjava3.subjects.PublishSubject;
-import put.edu.gui.KahootApp;
 import put.edu.gui.game.messages.Message;
 import put.edu.gui.game.messages.MessageTypePair;
+import put.edu.gui.game.messages.ServerErrorMessage;
 import put.edu.gui.game.messages.responses.ResponseMessage;
 
 import java.io.BufferedReader;
@@ -50,7 +50,7 @@ public class Reader extends ServerCommunicator {
             } catch (ClassNotFoundException classNotFoundException) {
                 System.err.println("Received invalid message cannot find message class");
             } catch (IOException ioException) {
-                KahootApp.get().disconnect();
+                getMessageSubject().onNext(new ServerErrorMessage());
                 this.stop();
             } catch (Exception e) {
                 System.err.println("Received invalid message");

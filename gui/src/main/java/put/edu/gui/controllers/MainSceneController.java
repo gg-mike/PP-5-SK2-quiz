@@ -18,7 +18,6 @@ public class MainSceneController {
     public void connectToServer() {
         if (KahootApp.get().isConnected()) {
             KahootApp.get().disconnect();
-            KahootApp.get().showScene("main-view.fxml");
             return;
         }
         String serverUrl = serverAddressTextField.textProperty().getValue();
