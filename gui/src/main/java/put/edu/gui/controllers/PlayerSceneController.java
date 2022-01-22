@@ -6,13 +6,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import put.edu.gui.KahootApp;
+import put.edu.gui.game.Game;
 import put.edu.gui.game.messages.Message;
+import put.edu.gui.game.messages.MessageType;
 import put.edu.gui.game.messages.requests.AnswerMessage;
 import put.edu.gui.game.messages.requests.JoinGameMessage;
-import put.edu.gui.game.messages.responses.AcceptMessage;
-import put.edu.gui.game.messages.responses.DeclineMessage;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class PlayerSceneController {
     @FXML
@@ -23,6 +24,7 @@ public class PlayerSceneController {
     public GridPane optionsGridPane;
     @FXML
     public GridPane joinGameGridPane;
+    private Game game;
 
 
     @FXML
@@ -35,11 +37,13 @@ public class PlayerSceneController {
                 Message responseMessage = KahootApp.get()
                         .getMessageObservable()
                         .get()
-                        .filter(message -> message instanceof AcceptMessage || message instanceof DeclineMessage)
+                        .filter(message -> (message.getType() & MessageType.JOIN_GAME.getValue()) == MessageType.JOIN_GAME.getValue())
                         .blockingFirst();
-                if (responseMessage instanceof AcceptMessage) {
+                if ((responseMessage.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
                     optionsGridPane.setVisible(true);
                     joinGameGridPane.setVisible(false);
+                } else {
+                    System.out.println("Failed to join game: " + gameCode);
                 }
             }
         } catch (Exception e) {
@@ -57,6 +61,7 @@ public class PlayerSceneController {
 
     @FXML
     public void exit() throws IOException {
+        Optional.ofNullable(game).ifPresent(Game::stop);
         KahootApp.get().disconnect();
         KahootApp.get().showScene("main-view.fxml");
     }

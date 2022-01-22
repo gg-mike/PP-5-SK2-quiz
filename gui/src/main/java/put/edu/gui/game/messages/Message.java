@@ -3,7 +3,7 @@ package put.edu.gui.game.messages;
 
 public abstract class Message {
     private final int type;
-    private String desc;
+    private String desc = "";
 
     public Message(int type) {
         this.type = type;

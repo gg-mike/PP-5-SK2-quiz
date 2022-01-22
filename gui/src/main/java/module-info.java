@@ -17,6 +17,7 @@ module put.edu.gui {
     opens put.edu.gui.game.models to com.google.gson;
 
     opens put.edu.gui.game.messages.requests to com.google.gson;
+    opens put.edu.gui.game.messages.responses to com.google.gson;
 
 
     exports put.edu.gui;

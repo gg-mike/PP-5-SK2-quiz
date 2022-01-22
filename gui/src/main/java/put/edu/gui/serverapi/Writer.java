@@ -1,7 +1,7 @@
 package put.edu.gui.serverapi;
 
 import com.google.gson.Gson;
-import io.reactivex.rxjava3.subjects.PublishSubject;
+import io.reactivex.rxjava3.subjects.UnicastSubject;
 import put.edu.gui.game.messages.Message;
 
 import java.io.IOException;
@@ -11,7 +11,7 @@ public class Writer extends ServerCommunicator {
     private final OutputStream outputStream;
 
     public Writer(OutputStream outputStream) {
-        super(PublishSubject.create());
+        super(UnicastSubject.create());
         this.outputStream = outputStream;
         this.start();
     }

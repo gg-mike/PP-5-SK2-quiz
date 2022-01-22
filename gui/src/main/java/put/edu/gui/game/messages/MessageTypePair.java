@@ -1,8 +1,9 @@
 package put.edu.gui.game.messages;
 
+
 public enum MessageTypePair {
-    DeclineMessage(MessageType.DECLINE.getValue()),
-    AcceptMessage(MessageType.ACCEPT.getValue());
+    AllAnsweredMessage(MessageType.ALL_ANSWERED.getValue()),
+    CreateGameMessage(MessageType.CREATE_GAME.getValue());
 
     private final int messageType;
 

@@ -14,6 +14,7 @@ public enum MessageType {
 
     // FROM COMMON
     EXIT_GAME(16),
+    HEARTBEAT(256),
 
     // TO COMMON
     SHUTDOWN(496),

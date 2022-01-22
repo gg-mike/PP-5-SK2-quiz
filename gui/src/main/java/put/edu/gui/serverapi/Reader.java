@@ -1,17 +1,15 @@
 package put.edu.gui.serverapi;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import io.reactivex.rxjava3.subjects.UnicastSubject;
+import io.reactivex.rxjava3.subjects.PublishSubject;
 import put.edu.gui.game.messages.Message;
 import put.edu.gui.game.messages.MessageTypePair;
+import put.edu.gui.game.messages.responses.ResponseMessage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.util.Map;
 import java.util.Optional;
 
 public class Reader extends ServerCommunicator {
@@ -19,18 +17,13 @@ public class Reader extends ServerCommunicator {
     private final BufferedReader bufferedReader;
 
     public Reader(InputStream inputStream) {
-        super(UnicastSubject.create());
+        super(PublishSubject.create());
         this.bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         this.start();
     }
 
-    private static Class<?> getClassByName(String className) {
-        try {
-            return Class.forName(Reader.messageClassesPackage + "." + className.substring(0, className.lastIndexOf('.')));
-        } catch (ClassNotFoundException e) {
-            System.err.println("cannot find class: " + className);
-        }
-        return null;
+    private static Class<?> getClassByName(String className) throws ClassNotFoundException {
+        return Class.forName(Reader.messageClassesPackage + "." + className);
     }
 
     @Override
@@ -50,6 +43,8 @@ public class Reader extends ServerCommunicator {
                 Message message = optionalMessage.orElseThrow();
                 System.out.println("Message read: " + message);
                 getMessageSubject().onNext(message);
+            } catch (ClassNotFoundException classNotFoundException) {
+                System.out.println("Received invalid message cannot find message class");
             } catch (Exception e) {
                 System.out.println("Received invalid message");
             }
@@ -70,23 +65,15 @@ public class Reader extends ServerCommunicator {
         return stringBuilder.toString();
     }
 
-    private Optional<Message> convertToMessage(String jsonString) {
-        Gson gson = new Gson();
-        Type empMapType = new TypeToken<Map<String, Object>>() {
-        }.getType();
-        Optional<Map<String, Object>> optionalJsonMap = Optional.ofNullable(gson.fromJson(jsonString, empMapType));
-        if (optionalJsonMap.isEmpty() || !optionalJsonMap.get().containsKey("type") ||
-                !(optionalJsonMap.get().get("type") instanceof Integer)) {
-            return Optional.empty();
-        }
-        int messageType = (int) optionalJsonMap.get().get("type");
+    private Optional<Message> convertToMessage(String jsonString) throws ClassNotFoundException {
+        Message message = new Gson().fromJson(jsonString, ResponseMessage.class);
         for (MessageTypePair messageTypePair : MessageTypePair.values()) {
-            if (messageTypePair.getMessageType() == messageType) {
-                Message message = (Message) new Gson().fromJson(jsonString, getClassByName(messageTypePair.toString()));
-                return Optional.of(message);
+            if ((message.getType() & messageTypePair.getMessageType()) == messageTypePair.getMessageType()) {
+                message = (Message) new Gson().fromJson(jsonString, getClassByName(messageTypePair.toString()));
+                return Optional.ofNullable(message);
             }
         }
-        return Optional.empty();
+        return Optional.ofNullable(message);
     }
 
 }

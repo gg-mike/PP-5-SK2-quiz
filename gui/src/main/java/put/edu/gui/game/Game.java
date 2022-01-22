@@ -1,26 +1,21 @@
 package put.edu.gui.game;
 
-public class Game implements Runnable {
-    private final Thread thread;
+import put.edu.gui.serverapi.HeartBeatRunner;
+
+public class Game {
     private final int gameNumber;
+    private final HeartBeatRunner heartBeatRunner;
 
     public Game(int gameNumber) {
         this.gameNumber = gameNumber;
-        this.thread = new Thread(this);
-        this.thread.start();
-    }
-
-    @Override
-    public void run() {
-
-
-    }
-
-    public void waitForServer() {
-
+        this.heartBeatRunner = new HeartBeatRunner();
     }
 
     public void stop() {
-        this.thread.interrupt();
+        heartBeatRunner.stop();
+    }
+
+    public int getGameNumber() {
+        return gameNumber;
     }
 }

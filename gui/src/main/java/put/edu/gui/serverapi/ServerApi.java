@@ -8,6 +8,7 @@ public class ServerApi {
     private final Socket socket;
     private final Reader reader;
     private final Writer writer;
+    private final HeartBeatRunner heartBeatRunner;
 
     public ServerApi(String address, int port) throws ConnectException {
         System.out.printf("connecting to address: %s, port: %d%n", address, port);
@@ -15,6 +16,7 @@ public class ServerApi {
             socket = new Socket(address, port);
             reader = new Reader(socket.getInputStream());
             writer = new Writer(socket.getOutputStream());
+            heartBeatRunner = new HeartBeatRunner();
         } catch (IOException e) {
             throw new ConnectException("connection failed");
         }
@@ -27,6 +29,8 @@ public class ServerApi {
     public void disconnect() {
         System.out.println("disconnecting");
         reader.stop();
+        writer.stop();
+        heartBeatRunner.stop();
         try {
             socket.close();
         } catch (IOException e) {
