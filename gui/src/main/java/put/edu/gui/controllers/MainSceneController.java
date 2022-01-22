@@ -30,6 +30,8 @@ public class MainSceneController {
             connectButton.setText("DISCONNECT");
             serverAddressTextField.setVisible(false);
             optionsGridPane.setVisible(true);
+        } else {
+            KahootApp.get().showPopupWindow("can't connect", "connection to server failed");
         }
     }
 

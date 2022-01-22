@@ -5,8 +5,9 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import put.edu.gui.controllers.PopupController;
 import put.edu.gui.game.messages.Message;
 import put.edu.gui.serverapi.ServerApi;
 
@@ -44,14 +45,23 @@ public class KahootApp extends Application {
         stage.show();
     }
 
-    public void showPopup(String tile, Scene scene) {
-        stage.setTitle("FileChooser");
-
-        // create a File chooser
-        FileChooser fil_chooser = new FileChooser();
-
-        // set title
-        fil_chooser.setTitle("Select File");
+    public void showPopupWindow(String title, String description) {
+        try {
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(KahootApp.class.getResource("popup-view.fxml")));
+            Parent parent = loader.load();
+            PopupController popupController = loader.getController();
+            popupController.setDescriptionText(description);
+            Scene scene = new Scene(parent, 200, 100);
+            Stage popupStage = new Stage();
+            popupStage.initModality(Modality.APPLICATION_MODAL);
+            popupStage.initOwner(this.stage);
+            popupStage.setTitle(title);
+            popupStage.setScene(scene);
+            popupStage.setResizable(false);
+            popupStage.show();
+        } catch (Exception e) {
+            System.err.println("Failed to show popup window");
+        }
     }
 
     public boolean connect(String address, int port) {
