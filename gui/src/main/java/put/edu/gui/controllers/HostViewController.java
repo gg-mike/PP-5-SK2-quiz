@@ -2,9 +2,9 @@ package put.edu.gui.controllers;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import io.reactivex.rxjava3.disposables.Disposable;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
@@ -20,10 +20,12 @@ import put.edu.gui.game.models.Question;
 
 import java.io.File;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class HostViewController {
     @FXML
     public Button createGameButton;
@@ -44,27 +46,12 @@ public class HostViewController {
     private int questionsCount;
 
     public HostViewController() {
-//        barChart.setTitle("Statistics");
-
+        initSubscriptions();
     }
 
     @FXML
     public void createGame() {
         KahootApp.get().sendMessage(new RequestCreateGameMessage());
-        Disposable result = KahootApp.get().getMessageObservable()
-                .filter(message -> (message.getType() & MessageType.CREATE_GAME.getValue()) == MessageType.CREATE_GAME.getValue())
-                .take(1)
-                .subscribe(message -> {
-                    if (message instanceof CreateGameMessage createGameMessage) {
-                        System.out.println("Game created");
-                        gameCodeText.setText("Game code: " + createGameMessage.getGameCode());
-                        createGameButton.setVisible(false);
-                        selectFileButton.setVisible(true);
-                    } else {
-                        System.out.println("Game creation failed");
-                    }
-                }, throwable -> {
-                });
     }
 
     @FXML
@@ -75,7 +62,7 @@ public class HostViewController {
         System.out.println("selected file: " + file);
         List<Question> questionList = null;
         try {
-            String questionsString = Files.readString(file.toPath());
+            String questionsString = Files.readString(file.toPath(), StandardCharsets.UTF_8);
             System.out.println("questions file:\n" + questionsString);
             Type questionListType = new TypeToken<List<Question>>() {
             }.getType();
@@ -87,18 +74,7 @@ public class HostViewController {
             questionsCount = questionList.size();
             System.out.println("questions loaded");
             KahootApp.get().sendMessage(new AddQuestionsMessage(questionList));
-            Disposable result = KahootApp.get().getMessageObservable()
-                    .filter(message -> (message.getType() & MessageType.ADD_QUESTIONS.getValue()) == MessageType.ADD_QUESTIONS.getValue())
-                    .take(1)
-                    .subscribe(message -> {
-                        if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
-                            System.out.println("questions accepted by server");
-                            selectFileButton.setVisible(false);
-                            startGameButton.setVisible(true);
-                        } else {
-                            System.out.println("questions declined by server");
-                        }
-                    });
+
         }
     }
 
@@ -110,27 +86,53 @@ public class HostViewController {
     @FXML
     public void nextQuestion() {
         KahootApp.get().sendMessage(new EndRoundMessage());
-        Disposable result = KahootApp.get().getMessageObservable()
-                .filter(message -> message instanceof AllAnsweredMessage)
-                .take(1)
-                .subscribe(message -> {
-//                        XYChart.Series<String, Integer> series = new XYChart.Series<>();
-//
-//                        series.getData().add(new XYChart.Data<>("A", ((AllAnsweredMessage) message).getA()));
-//                        series.getData().add(new XYChart.Data<>("B", ((AllAnsweredMessage) message).getB()));
-//                        series.getData().add(new XYChart.Data<>("C", ((AllAnsweredMessage) message).getC()));
-//                        series.getData().add(new XYChart.Data<>("D", ((AllAnsweredMessage) message).getD()));
-//
-//                        barChart.getData().clear();
-//                        barChart.getData().add(series);
 
-                });
     }
 
     @FXML
     public void exit() {
         KahootApp.get().disconnect();
 
+    }
+
+    private void initSubscriptions() {
+        KahootApp.get().getMessageObservable()
+                .filter(message -> (message.getType() & MessageType.CREATE_GAME.getValue()) == MessageType.CREATE_GAME.getValue())
+                .subscribe(message -> {
+                    if (message instanceof CreateGameMessage createGameMessage) {
+                        System.out.println("Game created");
+                        gameCodeText.setText("Game code: " + createGameMessage.getGameCode());
+                        createGameButton.setVisible(false);
+                        selectFileButton.setVisible(true);
+                    } else {
+                        System.out.println("Game creation failed");
+                    }
+                });
+        KahootApp.get().getMessageObservable()
+                .filter(message -> (message.getType() & MessageType.ADD_QUESTIONS.getValue()) == MessageType.ADD_QUESTIONS.getValue())
+                .subscribe(message -> {
+                    if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
+                        System.out.println("questions accepted by server");
+                        selectFileButton.setVisible(false);
+                        startGameButton.setVisible(true);
+                    } else {
+                        System.out.println("questions declined by server");
+                    }
+                });
+        KahootApp.get().getMessageObservable()
+                .filter(message -> message instanceof AllAnsweredMessage)
+                .subscribe(message -> {
+                    XYChart.Series<String, Integer> series = new XYChart.Series<>();
+
+                    series.getData().add(new XYChart.Data<>("A", ((AllAnsweredMessage) message).getA()));
+                    series.getData().add(new XYChart.Data<>("B", ((AllAnsweredMessage) message).getB()));
+                    series.getData().add(new XYChart.Data<>("C", ((AllAnsweredMessage) message).getC()));
+                    series.getData().add(new XYChart.Data<>("D", ((AllAnsweredMessage) message).getD()));
+
+                    barChart.getData().clear();
+                    barChart.getData().add(series);
+
+                });
     }
 
 }
