@@ -7,17 +7,10 @@
 #include "Game/Participants/Host.h"
 #include "Game/Participants/Player.h"
 
+#include "../Enumerators/GameState.h"
+
 class Game {
 public:
-    enum State {
-        CREATED,
-        OPENED,
-        STARTED,
-        ROUND_STARTED,
-        ROUND_ENDED,
-        ENDED
-    };
-
     struct Question {
         std::string content;
         std::array<std::string, 4> answers;
@@ -25,17 +18,16 @@ public:
     };
 
 private:
-    std::atomic<State> state{CREATED};
+    std::atomic<Enumerators::GameState> state{Enumerators::CREATED};
+    std::atomic<bool> canAnswer{false};
     int currentQuestion{0};
-
-    std::shared_mutex playersMtx;
-    std::condition_variable playersCv;
 
     std::mutex mtx;
     std::unique_lock<std::mutex> lock;
 
     std::shared_ptr<Host> host;
-    std::vector<std::shared_ptr<Player>> players{};
+    std::map<std::string, std::shared_ptr<Player>> players{};
+    std::map<std::string, std::string> answers{};
 
     std::map<int, Question> questions;
 
@@ -51,13 +43,18 @@ public:
     nlohmann::json EndRound();
     nlohmann::json HostExit();
 
-    [[nodiscard]] bool IsOpened() const { return state == OPENED; }
-    [[nodiscard]] bool GetState() const { return state; }
+    nlohmann::json PlayerAnswered(const std::string& nick, const nlohmann::json &answerJson);
+    nlohmann::json PlayerExit(const std::string &nick);
 
-    [[nodiscard]] const std::vector<std::shared_ptr<Player>>& GetPlayers() const { return players; }
+    [[nodiscard]] bool IsOpened() const { return state == Enumerators::OPENED; }
+    [[nodiscard]] Enumerators::GameState GetState() const { return state; }
+
+    [[nodiscard]] const std::map<std::string, std::shared_ptr<Player>>& GetPlayers() const { return players; }
     void AddPlayer(const std::shared_ptr<Player>& player);
-    void RemovePlayer(const std::shared_ptr<Player>& player);
 
 private:
-    [[nodiscard]] static nlohmann::json GenerateUnexpectedRequest() ;
+    nlohmann::json GenerateRanking();
+    void AllAnsweredCheck();
+    void NotifyPlayers() const;
+    [[nodiscard]] static nlohmann::json GenerateUnexpectedRequest();
 };

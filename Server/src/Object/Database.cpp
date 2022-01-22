@@ -74,6 +74,22 @@ json Database::HostExit(int gameCode) {
     return response;
 }
 
+json Database::PlayerAnswered(int gameCode, const std::string& nick, const json &answerJson) {
+    std::shared_lock _{mtx};
+    Game& game = games.at(gameCode)->Lock();
+    json response = game.PlayerAnswered(nick, answerJson);
+    game.Unlock();
+    return response;
+}
+
+json Database::PlayerExit(int gameCode, const std::string& nick) {
+    std::shared_lock _{mtx};
+    Game& game = games.at(gameCode)->Lock();
+    json response = game.PlayerExit(nick);
+    game.Unlock();
+    return response;
+}
+
 void Database::JoinGame(int gameCode, const std::shared_ptr<Player>& player) {
     std::shared_lock _{mtx};
     Game& game = games.at(gameCode)->Lock();
@@ -95,13 +111,10 @@ bool Database::GameExists(int gameCode) const {
 bool Database::NickFree(int gameCode, const std::string& nick) const {
     std::shared_lock _{mtx};
     Game& game = games.at(gameCode)->Lock();
-    json nick_json{};
-    std::string nick_str = json{{"nick", nick}}["nick"];
 
     bool free = true;
-    for (const auto& player: game.GetPlayers()) {
-        LOGINFO("new nick: ", nick_str, ", nick in: ", player->GetNick(), ", comp=", nick == player->GetNick());
-        if (nick_str == player->GetNick()) {
+    for (const auto& [playerNick, p]: game.GetPlayers()) {
+        if (nick == playerNick) {
             free = false;
             break;
         }
@@ -109,6 +122,11 @@ bool Database::NickFree(int gameCode, const std::string& nick) const {
 
     game.Unlock();
     return free;
+}
+
+Enumerators::GameState Database::GetState(int gameCode) {
+    std::shared_lock _{mtx};
+    return games.at(gameCode)->GetState();
 }
 
 int Database::GenerateGameCode() {
