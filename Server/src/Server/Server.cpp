@@ -111,7 +111,12 @@ void Server::ReadConfig(const std::string &configFile) {
         j["port"],
         j["bufSize"],
         j["listenConnNum"],
-        j["maxTimeBetweenHb_sec"],
+        {
+                {"client", j["maxTimeBetweenHb_sec"]["client"]},
+                {"host", j["maxTimeBetweenHb_sec"]["host"]},
+                {"player", j["maxTimeBetweenHb_sec"]["player"]}
+                },
+        j["timeBetweenAnswersNumberSend_sec"],
         j["messageBegin"],
         j["messageEnd"]
     };

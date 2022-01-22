@@ -93,7 +93,7 @@ json Database::PlayerExit(int gameCode, const std::string& nick) {
 void Database::JoinGame(int gameCode, const std::shared_ptr<Player>& player) {
     std::shared_lock _{mtx};
     Game& game = games.at(gameCode)->Lock();
-    game.AddPlayer(player);
+    game.PlayerJoined(player);
     game.Unlock();
 }
 
@@ -101,7 +101,7 @@ bool Database::GameExists(int gameCode) const {
     std::shared_lock _{mtx};
     if (games.contains(gameCode)) {
         Game& game = games.at(gameCode)->Lock();
-        bool exists = game.IsOpened();
+        bool exists = game.GetState() == Enumerators::OPENED;
         game.Unlock();
         return exists;
     }
@@ -122,11 +122,6 @@ bool Database::NickFree(int gameCode, const std::string& nick) const {
 
     game.Unlock();
     return free;
-}
-
-Enumerators::GameState Database::GetState(int gameCode) {
-    std::shared_lock _{mtx};
-    return games.at(gameCode)->GetState();
 }
 
 int Database::GenerateGameCode() {

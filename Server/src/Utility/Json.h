@@ -1,7 +1,7 @@
 #pragma once
 #include "nlohmann/json.hpp"
 #include "../Enumerators/Request.h"
-#include "../Object/Server.h"
+#include "../Server/Server.h"
 
 namespace Json {
 

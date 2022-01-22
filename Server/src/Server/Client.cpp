@@ -15,7 +15,7 @@ using nlohmann::json;
 
 Client::Client(int fd)
     : fd(fd), lastHeartbeat(high_resolution_clock::now()) {
-    maxTimeBetweenHb_ms = Server::GetInstance()->GetConfig().maxTimeBetweenHb_sec * 1000;
+    maxTimeBetweenHb_ms = Server::GetInstance()->GetConfig().maxTimeBetweenHb_sec.at("client") * 1000;
     messageBegin = Server::GetInstance()->GetConfig().messageBegin;
     messageEnd = Server::GetInstance()->GetConfig().messageEnd;
     heartbeatThread = std::thread(&Client::HeartbeatHandler, this);
@@ -24,6 +24,9 @@ Client::Client(int fd)
 
 void Client::Shutdown() {
     running = false;
+    json response = ExitFromGame();
+    if (!response.empty())
+        Server::GetInstance()->Send(fd, response);
     SendShutdownMessage();
     Socket::Shutdown(fd);
     heartbeatThread.join();
@@ -32,6 +35,7 @@ void Client::Shutdown() {
 }
 
 void Client::HeartbeatHandler() {
+    bool warningSend = false;
     while (running) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -40,10 +44,19 @@ void Client::HeartbeatHandler() {
 
         if (!running) return;
 
-        LOGWARNING("Client #", fd, " is not responding => closing connection");
-        Server::GetInstance()->Action(fd, ServerAction::CLOSE_CONN);
-        running = false;
-        return;
+        if (gameParticipant != nullptr && !warningSend && gameParticipant->GetType() == 1) {
+            Server::GetInstance()->Send(fd, {"type", Request::REQUEST_ACTION});
+            warningSend = true;
+            LOGINFO("Action request send to host (fd=", fd, ")");
+        }
+        else {
+            json response = ExitFromGame();
+            if (!response.empty()) Server::GetInstance()->Send(fd, response);
+            LOGWARNING("Client #", fd, " is not responding => closing connection");
+            Server::GetInstance()->Action(fd, ServerAction::CLOSE_CONN);
+            running = false;
+            return;
+        }
     }
 }
 
@@ -56,6 +69,7 @@ void Client::MessageHandler() {
         if ((rc < 0 && errno != EWOULDBLOCK) || rc == 0) {
             if (!running) return;
 
+            ExitFromGame();
             LOGWARNING("Client #", fd, " has disconnected => closing connection");
             Server::GetInstance()->Action(fd, ServerAction::CLOSE_CONN);
             running = false;
@@ -87,7 +101,7 @@ void Client::MessageHandler() {
             } catch (json::exception& exception) {
                 Server::GetInstance()->Send(fd, {
                         {"type", Request::ERROR},
-                        {"desc", "json.exception.parse_error"},
+                        {"desc", "json.exception"},
                         {"exceptionMessage", exception.what()}
                 });
             }
@@ -99,6 +113,7 @@ void Client::ProcessRequest(const json &request) {
     if (gameParticipantStateChange) {
         gameParticipant.reset();
         gameParticipantStateChange = false;
+        maxTimeBetweenHb_ms = Server::GetInstance()->GetConfig().maxTimeBetweenHb_sec.at("client") * 1000;
     }
 
     Json::Field<int> type = Json::Test<int>(request, "type", fd, Request::NONE);
@@ -116,9 +131,10 @@ void Client::ProcessRequest(const json &request) {
                 int gameCode = Database::GetInstance()->CreateNewGame(std::dynamic_pointer_cast<Host>(gameParticipant));
                 std::dynamic_pointer_cast<Host>(gameParticipant)->SetGameCode(gameCode);
                 response = {
-                        {"type",     Request::CREATE_GAME | Request::ACCEPT},
+                        {"type", Request::CREATE_GAME | Request::ACCEPT},
                         {"gameCode", gameCode}
                 };
+                maxTimeBetweenHb_ms = Server::GetInstance()->GetConfig().maxTimeBetweenHb_sec.at("host") * 1000;
                 break;
             }
             case Request::JOIN_GAME: {
@@ -148,6 +164,7 @@ void Client::ProcessRequest(const json &request) {
                                      " with nick '" + nick.value + "'"}
                     };
                 }
+                maxTimeBetweenHb_ms = Server::GetInstance()->GetConfig().maxTimeBetweenHb_sec.at("player") * 1000;
                 break;
             }
             case Request::EXIT: {
@@ -171,4 +188,19 @@ void Client::ProcessRequest(const json &request) {
 
 void Client::SendShutdownMessage() const {
     Server::GetInstance()->Send(fd, {{"text", "Connection closed"}});
+}
+
+nlohmann::json Client::ExitFromGame() {
+    json response{};
+    if (gameParticipant != nullptr) {
+        if (gameParticipant->GetType() == 1)
+            response = Database::GetInstance()->HostExit(
+                    std::dynamic_pointer_cast<Host>(gameParticipant)->GetGameCode());
+        else if (gameParticipant->GetType() == 2)
+            response = Database::GetInstance()->PlayerExit(
+                    std::dynamic_pointer_cast<Player>(gameParticipant)->GetGameCode(),
+                    std::dynamic_pointer_cast<Player>(gameParticipant)->GetNick());
+        gameParticipant = nullptr;
+    }
+    return response;
 }

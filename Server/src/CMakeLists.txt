@@ -1,5 +1,5 @@
 add_subdirectory(Game)
-add_subdirectory(Object)
+add_subdirectory(Server)
 add_subdirectory(Utility)
 
 add_executable(${PROJECT_NAME} main.cpp)
@@ -10,13 +10,13 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_directories(${PROJECT_NAME}
         PRIVATE Game
-        PRIVATE Object
+        PRIVATE Server
         PRIVATE Utility
         )
 
 target_link_libraries(${PROJECT_NAME}
         Game
-        Object
+        Server
         Utility
         )
 
