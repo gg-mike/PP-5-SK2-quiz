@@ -108,7 +108,7 @@ public class HostViewController {
     @FXML
     public void exit() {
         KahootApp.get().disconnect();
-        KahootApp.get().showScene("main-view.fxml");
+//        KahootApp.get().showScene("main-view.fxml");
     }
 
 }

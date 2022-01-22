@@ -2,6 +2,7 @@ package put.edu.gui.serverapi;
 
 import com.google.gson.Gson;
 import io.reactivex.rxjava3.subjects.PublishSubject;
+import put.edu.gui.KahootApp;
 import put.edu.gui.game.messages.Message;
 import put.edu.gui.game.messages.MessageTypePair;
 import put.edu.gui.game.messages.responses.ResponseMessage;
@@ -38,6 +39,9 @@ public class Reader extends ServerCommunicator {
                         break;
                     }
                 }
+                if (jsonString == null) {
+                    throw new IOException("line is null");
+                }
                 System.out.println("Read json: \n" + jsonString);
                 Optional<Message> optionalMessage = convertToMessage(jsonString);
                 Message message = optionalMessage.orElseThrow();
@@ -45,6 +49,9 @@ public class Reader extends ServerCommunicator {
                 getMessageSubject().onNext(message);
             } catch (ClassNotFoundException classNotFoundException) {
                 System.err.println("Received invalid message cannot find message class");
+            } catch (IOException ioException) {
+                KahootApp.get().disconnect();
+                this.stop();
             } catch (Exception e) {
                 System.err.println("Received invalid message");
             }

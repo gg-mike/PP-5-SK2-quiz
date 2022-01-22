@@ -84,7 +84,14 @@ public class KahootApp extends Application {
     }
 
     public boolean isConnected() {
-        return Optional.ofNullable(serverApi).isPresent() && serverApi.isConnected();
+        if (Optional.ofNullable(serverApi).isPresent()) {
+            if (serverApi.isConnected()) {
+                return true;
+            }
+            disconnect();
+            showScene("main-view");
+        }
+        return false;
     }
 
     public void disconnect() {
@@ -92,6 +99,7 @@ public class KahootApp extends Application {
             serverApi.disconnect();
             serverApi = null;
         }
+        showScene("main-view.fxml");
     }
 
     public void sendMessage(Message message) {

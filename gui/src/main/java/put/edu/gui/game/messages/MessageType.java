@@ -47,13 +47,6 @@ public enum MessageType {
         this.value = value;
     }
 
-    @Override
-    public String toString() {
-        return "MessageType{" +
-                "type=" + value +
-                '}';
-    }
-
     public int getValue() {
         return value;
     }
