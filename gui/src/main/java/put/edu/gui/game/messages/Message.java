@@ -14,6 +14,16 @@ public abstract class Message {
         this.desc = desc;
     }
 
+    private static String resolveTypeName(int type) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (MessageType messageType : MessageType.values()) {
+            if ((messageType.getValue() & type) == messageType.getValue()) {
+                stringBuilder.append(messageType).append(',');
+            }
+        }
+        return stringBuilder.toString();
+    }
+
     public int getType() {
         return type;
     }
@@ -25,7 +35,7 @@ public abstract class Message {
     @Override
     public String toString() {
         return "Message{" +
-                "type=" + type +
+                "type=" + resolveTypeName(type) +
                 ", desc='" + desc + '\'' +
                 '}';
     }
