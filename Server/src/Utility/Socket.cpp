@@ -29,11 +29,10 @@ namespace Socket {
     }
 
     void Bind(int fd, int port) {
-        sockaddr_in sockaddrIn {
-                AF_INET,
-                htons(port),
-                {.s_addr = INADDR_ANY}
-        };
+        sockaddr_in sockaddrIn{};
+        sockaddrIn.sin_family = AF_INET;
+        sockaddrIn.sin_port = htons(port);
+        sockaddrIn.sin_addr.s_addr = INADDR_ANY;
 
         if (bind(fd, (struct sockaddr*)&sockaddrIn, sizeof sockaddrIn) < 0) {
             LOGERROR("Socket::Bind() failed");

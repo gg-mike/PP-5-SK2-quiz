@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "Object/Server.h"
+#include "Server/Server.h"
 
 
 int main(int, char **) {

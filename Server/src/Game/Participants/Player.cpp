@@ -2,7 +2,7 @@
 #include "Player.h"
 
 #include "Enumerators/Request.h"
-#include "Object/Database.h"
+#include "Server/Database.h"
 
 using nlohmann::json;
 using Enumerators::GameState, Enumerators::Request;
@@ -27,60 +27,45 @@ json Player::Process(Request type, const json& request) {
 }
 
 void Player::RequestHandler(GameState currGameState) {
+    auto sv = Server::GetInstance();
     switch (currGameState) {
-        case GameState::STARTED: {
-            Server::GetInstance()->Send(fd, {
-                    {"type", Request::GAME_STARTED},
-                    {"typeText", "GAME_STARTED"}
-            });
-            break;
-        }
+        case GameState::STARTED:
+            return sv->Send(fd, {{"type", Request::GAME_STARTED}});
         case GameState::R_STARTED: {
             answered = false;
             wasCorrectAnswer = false;
-            Server::GetInstance()->Send(fd, {
-                    {"type", Request::ROUND_STARTED},
-                    {"typeText", "ROUND_STARTED"}
-            });
-            break;
+            return sv->Send(fd, {{"type", Request::ROUND_STARTED}});
         }
         case GameState::R_ENDED: {
             if (answered)
-                Server::GetInstance()->Send(fd, {
+                return sv->Send(fd, {
                         {"type", Request::ROUND_ENDED},
-                        {"typeText", "ROUND_ENDED"},
                         {"wasCorrectAnswer", wasCorrectAnswer.load()},
                         {"score", score.load()},
                         {"placeInRanking", pos.load()}
                 });
             else
-                Server::GetInstance()->Send(fd, {
+                return sv->Send(fd, {
                         {"type", Request::ROUND_TIMEOUT},
-                        {"typeText", "ROUND_TIMEOUT"},
                         {"wasCorrectAnswer", false},
                         {"score", score.load()},
                         {"placeInRanking", pos.load()}
                 });
-            break;
         }
         case GameState::ENDED: {
-            Server::GetInstance()->Send(fd, {
+            return sv->Send(fd, {
                     {"type", Request::GAME_ENDED},
-                    {"typeText", "GAME_ENDED"},
                     {"score", score.load()},
                     {"placeInRanking", pos.load()}
             });
-            break;
         }
         case GameState::SHUT: {
-            Server::GetInstance()->Send(fd, {
+            return sv->Send(fd, {
                     {"type", Request::GAME_SHUTDOWN},
-                    {"typeText", "GAME_SHUTDOWN"},
                     {"score", score.load()},
                     {"placeInRanking", pos.load()}
             });
-            break;
         }
-        default: ;
+        default: return;
     }
 }

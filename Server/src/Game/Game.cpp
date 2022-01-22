@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "Game.h"
 
-#include <utility>
-
 #include "Enumerators/Request.h"
 
 using nlohmann::json;
@@ -13,6 +11,7 @@ Game::Game(std::shared_ptr<Host> host)
     : host(std::move(host)) {
     lock = std::unique_lock<std::mutex>{mtx};
     lock.unlock();
+    LOGINFO("Host (fd=", this->host->GetFd(), ") created game");
 }
 
 Game &Game::Lock() {
@@ -32,6 +31,7 @@ json Game::AddQuestions(const json &questionsJson) {
     Field<json::array_t> array = Test<json::array_t>(questionsJson, "questions", hostFd, Request::ADD_QUESTIONS);
     if (array.opStatus != 1) return {};
 
+    std::vector<std::string> fieldNames{"Q", "A", "B", "C", "D", "rightAnswer"};
     bool done;
 
     for (const auto& obj: array.value) {
@@ -40,44 +40,41 @@ json Game::AddQuestions(const json &questionsJson) {
         Field<int> n = Test<int>(obj, "n", hostFd, Request::ADD_QUESTIONS);
         if (n.opStatus != 1) break;
 
-        Field<std::string> q = Test<std::string>(obj, "Q", hostFd, Request::ADD_QUESTIONS);
-        if (q.opStatus != 1) break;
+        std::vector<Field<std::string>> fields;
 
-        Field<std::string> a = Test<std::string>(obj, "A", hostFd, Request::ADD_QUESTIONS);
-        if (a.opStatus != 1) break;
+        for (const auto& fieldName: fieldNames) {
+            Field<std::string> f = Test<std::string>(obj, fieldName, hostFd, Request::ADD_QUESTIONS);
+            if (f.opStatus != 1) break;
+            fields.push_back(f);
+        }
 
-        Field<std::string> b = Test<std::string>(obj, "B", hostFd, Request::ADD_QUESTIONS);
-        if (b.opStatus != 1) break;
+        if (fields.size() != fieldNames.size()) break;
 
-        Field<std::string> c = Test<std::string>(obj, "C", hostFd, Request::ADD_QUESTIONS);
-        if (c.opStatus != 1) break;
-
-        Field<std::string> d = Test<std::string>(obj, "D", hostFd, Request::ADD_QUESTIONS);
-        if (d.opStatus != 1) break;
-
-        Field<std::string> rightAnswer = Test<std::string>(obj, "rightAnswer", hostFd, Request::ADD_QUESTIONS);
-        if (rightAnswer.opStatus != 1) break;
+        availableQuestions.insert(n.value);
+        currentQuestion = *availableQuestions.begin();
 
         questions.insert({n.value, {
-            q.value,
+            fields[0].value,
             {
-                a.value,
-                b.value,
-                c.value,
-                d.value
+                fields[1].value,
+                fields[2].value,
+                fields[3].value,
+                fields[4].value
                 },
-            rightAnswer.value}});
+            fields[5].value}});
 
         done = true;
     }
 
     if (done) {
+        LOGINFO("Host (game=", host->GetGameCode(), ") added questions");
         state = GameState::OPENED;
         return {
                 {"type", Request::ADD_QUESTIONS | Request::ACCEPT},
                 {"questionsNumber", questions.size()}
         };
     }
+    LOGWARNING("Host (game=", host->GetGameCode(), ") could not add questions");
     return {};
 }
 
@@ -93,6 +90,7 @@ json Game::Start() {
     state = GameState::STARTED;
     NotifyPlayers();
 
+    LOGINFO("Host (game=", host->GetGameCode(), ") started game");
     return {{"type", Request::START_GAME | Request::ACCEPT}};
 }
 
@@ -103,13 +101,14 @@ json Game::End() {
     state = GameState::ENDED;
     NotifyPlayers();
 
+    LOGINFO("Host (game=", host->GetGameCode(), ") ended game");
     return {{"type", Request::END_GAME | Request::ACCEPT}};
 }
 
 json Game::StartRound() {
     if (state != GameState::STARTED && state != GameState::R_ENDED)
         return Game::GenerateUnexpectedRequest();
-    else if (currentQuestion >= questions.size())
+    else if (availableQuestions.empty())
         return {
             {"type", Request::START_ROUND | Request::DECLINE},
             {"desc", "No more questions left"}
@@ -117,11 +116,13 @@ json Game::StartRound() {
 
     state = GameState::R_STARTED;
     canAnswer = true;
+    answersNumberThread = std::thread(&Game::AnswersNumberHandler, this);
     answers.clear();
     NotifyPlayers();
 
     Question currQ = questions.at(currentQuestion);
 
+    LOGINFO("Host (game=", host->GetGameCode(), ") started round");
     return {
         {"type", Request::START_ROUND | Request::ACCEPT},
         {"question", {
@@ -145,11 +146,15 @@ json Game::EndRound() {
 
     state = GameState::R_ENDED;
     canAnswer = false;
+    answersNumberThread.join();
 
     json response = GenerateRanking();
     NotifyPlayers();
     response["type"] = Request::END_ROUND | Request::ACCEPT;
-    currentQuestion++;
+    availableQuestions.erase(currentQuestion);
+    if (!availableQuestions.empty())
+        currentQuestion = *availableQuestions.begin();
+    LOGINFO("Host (game=", host->GetGameCode(), ") ended round");
     return response;
 }
 
@@ -158,6 +163,7 @@ nlohmann::json Game::HostExit() {
     NotifyPlayers();
 
     host->SetStateChange(true);
+    LOGINFO("Host (game=", host->GetGameCode(), ") exited");
     return {{"type", Request::EXIT_GAME | Request::ACCEPT}};
 }
 
@@ -177,6 +183,7 @@ nlohmann::json Game::PlayerAnswered(const std::string &nick, const json &answerJ
 
     AllAnsweredCheck();
 
+    LOGINFO("Player (game=", host->GetGameCode(), ", nick=", nick, ") answered");
     return {{"type", Request::ANSWER | Request::ACCEPT}};
 }
 
@@ -188,10 +195,11 @@ nlohmann::json Game::PlayerExit(const std::string &nick) {
 
     AllAnsweredCheck();
 
+    LOGINFO("Player (game=", host->GetGameCode(), ", nick=", nick, ") exited");
     return {{"type", Request::EXIT_GAME | Request::ACCEPT}};
 }
 
-void Game::AddPlayer(const std::shared_ptr<Player>& player) {
+void Game::PlayerJoined(const std::shared_ptr<Player>& player) {
     if (state != GameState::OPENED) {
         Server::GetInstance()->Send(host->GetFd(), Game::GenerateUnexpectedRequest());
         return;
@@ -199,6 +207,7 @@ void Game::AddPlayer(const std::shared_ptr<Player>& player) {
 
     players.insert({player->GetNick(), player});
 
+    LOGINFO("Player (game=", host->GetGameCode(), ", nick=", player->GetNick(), ") joined");
     Server::GetInstance()->Send(host->GetFd(), {
         {"type", Request::PLAYER_JOINED},
         {"nick", player->GetNick()}
@@ -240,6 +249,7 @@ json Game::GenerateRanking() {
             player->SetPos(++prevPos);
             prevScore = player->GetScore();
         }
+        if (prevPos > 3) break;
         j["ranking"] += {
             {"nick", player->GetNick()},
             {"pos", player->GetPos()},
@@ -256,6 +266,18 @@ void Game::AllAnsweredCheck() {
     }
 }
 
+void Game::AnswersNumberHandler() {
+    int t = Server::GetInstance()->GetConfig().timeBetweenAnswersNumberSend_sec;
+    while(canAnswer) {
+        std::this_thread::sleep_for(std::chrono::seconds (t));
+        std::lock_guard _{mtx};
+        Server::GetInstance()->Send(host->GetFd(), {
+                {"type", Request::CURRENT_RESULTS},
+                {"answers", answers.size()}
+        });
+    }
+}
+
 void Game::NotifyPlayers() const {
     for (auto& [nick, player]: players)
         player->RequestHandler(state);
@@ -264,7 +286,6 @@ void Game::NotifyPlayers() const {
 json Game::GenerateUnexpectedRequest() {
     return {
         {"type", Request::ERROR},
-        {"typeText", "ERROR"},
         {"desc", "Unexpected request type"}
     };
 }

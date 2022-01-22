@@ -5,7 +5,7 @@
 class Client {
 private:
     // From server config
-    int maxTimeBetweenHb_ms;
+    std::atomic<int> maxTimeBetweenHb_ms{};
     std::string messageBegin;
     std::string messageEnd;
 
@@ -21,6 +21,7 @@ private:
 public:
     explicit Client(int fd);
     void Shutdown();
+    nlohmann::json ExitFromGame();
 
 private:
     void HeartbeatHandler();
