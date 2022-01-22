@@ -6,8 +6,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import put.edu.gui.KahootApp;
 
-import java.io.IOException;
-
 public class MainSceneController {
     @FXML
     public GridPane optionsGridPane;
@@ -18,6 +16,11 @@ public class MainSceneController {
 
     @FXML
     public void connectToServer() {
+        if (KahootApp.get().isConnected()) {
+            KahootApp.get().disconnect();
+            KahootApp.get().showScene("main-view.fxml");
+            return;
+        }
         String serverUrl = serverAddressTextField.textProperty().getValue();
         System.out.println(serverUrl);
         if (serverUrl.isBlank()) {
@@ -36,12 +39,12 @@ public class MainSceneController {
     }
 
     @FXML
-    public void showPlayerScene() throws IOException {
+    public void showPlayerScene() {
         KahootApp.get().showScene("player-view.fxml");
     }
 
     @FXML
-    public void showHostScene() throws IOException {
+    public void showHostScene() {
         KahootApp.get().showScene("host-view.fxml");
     }
 

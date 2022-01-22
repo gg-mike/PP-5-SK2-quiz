@@ -16,7 +16,6 @@ import put.edu.gui.game.messages.responses.CreateGameMessage;
 import put.edu.gui.game.models.Question;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.util.List;
@@ -107,7 +106,7 @@ public class HostViewController {
     }
 
     @FXML
-    public void exit() throws IOException {
+    public void exit() {
         KahootApp.get().disconnect();
         KahootApp.get().showScene("main-view.fxml");
     }

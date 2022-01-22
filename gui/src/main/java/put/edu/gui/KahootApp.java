@@ -36,13 +36,17 @@ public class KahootApp extends Application {
         return stage;
     }
 
-    public void showScene(String sceneFileName) throws IOException {
-        Parent parent = FXMLLoader.load(Objects.requireNonNull(KahootApp.class.getResource(sceneFileName)));
-        Scene scene = new Scene(parent, KahootApp.width, KahootApp.height);
-        stage.setScene(scene);
-        stage.setResizable(false);
-        stage.setTitle("Kahoot!");
-        stage.show();
+    public void showScene(String sceneFileName) {
+        try {
+            Parent parent = FXMLLoader.load(Objects.requireNonNull(KahootApp.class.getResource(sceneFileName)));
+            Scene scene = new Scene(parent, KahootApp.width, KahootApp.height);
+            stage.setScene(scene);
+            stage.setResizable(false);
+            stage.setTitle("Kahoot!");
+            stage.show();
+        } catch (IOException e) {
+            System.err.println("Failed to show: " + sceneFileName + " scene");
+        }
     }
 
     public void showPopupWindow(String title, String description) {
@@ -107,7 +111,7 @@ public class KahootApp extends Application {
     }
 
     @Override
-    public void start(Stage stage) throws IOException {
+    public void start(Stage stage) {
         kahootApp = this;
         this.stage = stage;
         showScene("main-view.fxml");
