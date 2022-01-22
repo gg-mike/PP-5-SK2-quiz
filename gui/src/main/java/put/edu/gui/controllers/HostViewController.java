@@ -148,7 +148,7 @@ public class HostViewController {
                 .subscribe(message -> {
                     StartRoundMessage startRoundMessage = (StartRoundMessage) message;
                     questionText.setText("Question: " +
-                            "\nnumber: " + startRoundMessage.getQuestion().getQ() +
+                            "\nnumber: " + startRoundMessage.getQuestion().getN() +
                             "\ncontents: " + startRoundMessage.getQuestion().getQ() +
                             "\nAnswers: " +
                             "\nA: " + startRoundMessage.getQuestion().getA() +

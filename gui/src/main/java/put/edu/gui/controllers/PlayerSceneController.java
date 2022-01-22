@@ -10,6 +10,7 @@ import put.edu.gui.KahootApp;
 import put.edu.gui.game.messages.MessageType;
 import put.edu.gui.game.messages.requests.AnswerMessage;
 import put.edu.gui.game.messages.requests.RequestJoinGameMessage;
+import put.edu.gui.game.messages.responses.GameShutdownMessage;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class PlayerSceneController {
@@ -80,6 +81,13 @@ public class PlayerSceneController {
                 .subscribe(message -> {
                     infoText.setText("round started");
                     optionsGridPane.setVisible(true);
+                });
+        KahootApp.get().getMessageObservable()
+                .filter(message -> message instanceof GameShutdownMessage)
+                .subscribe(message -> {
+                    GameShutdownMessage gameShutdownMessage = (GameShutdownMessage) message;
+                    infoText.setText("Game ended, score: " + gameShutdownMessage.getScore() +
+                            "place in ranking: " + gameShutdownMessage.getPlaceInRanking());
                 });
     }
 }
