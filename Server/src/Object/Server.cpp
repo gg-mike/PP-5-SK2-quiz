@@ -18,13 +18,13 @@ std::shared_ptr <Server> Server::GetInstance() {
 void Server::Run(const std::string &configFile) {
     Init(configFile);
 
-    acceptThread = std::thread(&Server::AcceptClients, this);
-    handleThread = std::thread(&Server::HandleClients, this);
+    acceptThread = std::thread(&Server::AcceptHandler, this);
+    shutdownClientsThread = std::thread(&Server::ShutdownClientsHandler, this);
 }
 
 void Server::Shutdown() {
     acceptThread.join();
-    handleThread.join();
+    shutdownClientsThread.join();
 
     for (auto &client: clients)
         client.second->Shutdown();
@@ -67,7 +67,7 @@ void Server::Init(const std::string &configFile) {
     LOGINFO("Server: started at port: ", config.port, " (fd=", fd, ")");
 }
 
-void Server::AcceptClients() {
+void Server::AcceptHandler() {
     int acc_fd;
     while (running) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -83,7 +83,7 @@ void Server::AcceptClients() {
     }
 }
 
-void Server::HandleClients() {
+void Server::ShutdownClientsHandler() {
     while (running) {
         std::unique_lock lock{handleMtx};
         cv.wait(lock, [&](){ return !clientsToShutdown.empty() || !running; });

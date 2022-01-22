@@ -28,7 +28,7 @@ private:
     std::set<int> clientsToShutdown{};
 
     std::thread acceptThread;
-    std::thread handleThread;
+    std::thread shutdownClientsThread;
 
 public:
     static std::shared_ptr<Server> GetInstance();
@@ -44,8 +44,8 @@ public:
 
 private:
     void Init(const std::string &configFile=DEFAULT_CONFIG);
-    void AcceptClients();
-    void HandleClients();
+    void AcceptHandler();
+    void ShutdownClientsHandler();
     void ReadConfig(const std::string& configFile);
 
 public:

@@ -14,8 +14,8 @@ private:
     std::atomic<std::chrono::high_resolution_clock::time_point> lastHeartbeat;
 
     std::thread heartbeatThread;
-    std::thread readerThread;
-
+    std::thread messageThread;
+    std::atomic<bool> gameParticipantStateChange{false};
     std::shared_ptr<IGameParticipant> gameParticipant{nullptr};
 
 public:
@@ -23,8 +23,8 @@ public:
     void Shutdown();
 
 private:
-    void CheckHeartbeat();
-    void ReadMessages();
+    void HeartbeatHandler();
+    void MessageHandler();
     void ProcessRequest(const nlohmann::json& request);
 
     void SendShutdownMessage() const;

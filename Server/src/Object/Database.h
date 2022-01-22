@@ -19,10 +19,15 @@ public:
     nlohmann::json EndRound(int gameCode);
     nlohmann::json HostExit(int gameCode);
 
+    nlohmann::json PlayerAnswered(int gameCode, const std::string& nick, const nlohmann::json& answerJson);
+    nlohmann::json PlayerExit(int gameCode, const std::string& nick);
+
     void JoinGame(int gameCode, const std::shared_ptr<Player>& player);
 
     [[nodiscard]] bool GameExists(int gameCode) const;
     [[nodiscard]] bool NickFree(int gameCode, const std::string& nick) const;
+
+    Enumerators::GameState GetState(int gameCode);
 
 private:
     int GenerateGameCode();
