@@ -27,8 +27,6 @@ public:
     [[nodiscard]] bool GameExists(int gameCode) const;
     [[nodiscard]] bool NickFree(int gameCode, const std::string& nick) const;
 
-    Enumerators::GameState GetState(int gameCode);
-
 private:
     int GenerateGameCode();
 

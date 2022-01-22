@@ -11,7 +11,8 @@ public:
         int port;
         ssize_t bufSize;
         int listenConnNum;
-        int maxTimeBetweenHb_sec;
+        std::map<std::string, int> maxTimeBetweenHb_sec;
+        int timeBetweenAnswersNumberSend_sec;
         std::string messageBegin;
         std::string messageEnd;
     };
