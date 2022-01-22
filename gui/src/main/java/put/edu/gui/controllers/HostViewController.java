@@ -10,10 +10,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import put.edu.gui.KahootApp;
 import put.edu.gui.game.messages.MessageType;
-import put.edu.gui.game.messages.requests.AddQuestionsMessage;
-import put.edu.gui.game.messages.requests.EndRoundMessage;
-import put.edu.gui.game.messages.requests.RequestCreateGameMessage;
-import put.edu.gui.game.messages.requests.StartGameMessage;
+import put.edu.gui.game.messages.requests.*;
 import put.edu.gui.game.messages.responses.AllAnsweredMessage;
 import put.edu.gui.game.messages.responses.CreateGameMessage;
 import put.edu.gui.game.models.Question;
@@ -35,6 +32,8 @@ public class HostViewController {
     public Button selectFileButton;
     @FXML
     public Button nextQuestionButton;
+    @FXML
+    public Button endRoundButton;
     @FXML
     public Text gameCodeText;
     @FXML
@@ -81,18 +80,24 @@ public class HostViewController {
     @FXML
     public void startGame() {
         KahootApp.get().sendMessage(new StartGameMessage());
+        startGameButton.setVisible(false);
+        nextQuestionButton.setVisible(true);
+        endRoundButton.setVisible(true);
     }
 
     @FXML
     public void nextQuestion() {
-        KahootApp.get().sendMessage(new EndRoundMessage());
+        KahootApp.get().sendMessage(new StartRoundMessage());
+    }
 
+    @FXML
+    public void endRound() {
+        KahootApp.get().sendMessage(new EndRoundMessage());
     }
 
     @FXML
     public void exit() {
         KahootApp.get().disconnect();
-
     }
 
     private void initSubscriptions() {
