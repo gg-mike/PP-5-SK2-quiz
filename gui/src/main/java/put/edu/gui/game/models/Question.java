@@ -1,12 +1,21 @@
 package put.edu.gui.game.models;
 
 public class Question {
+    Integer n;
     String Q;
     String A;
     String B;
     String C;
     String D;
     String rightAnswer;
+
+    public Integer getN() {
+        return n;
+    }
+
+    public void setN(Integer n) {
+        this.n = n;
+    }
 
     public String getQ() {
         return Q;

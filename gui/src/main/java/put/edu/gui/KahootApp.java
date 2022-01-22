@@ -56,14 +56,14 @@ public class KahootApp extends Application {
 
     public boolean connect(String address, int port) {
         if (Optional.ofNullable(serverApi).isPresent()) {
-            System.out.println("Cannot connect when connected");
+            System.err.println("Cannot connect when connected");
             return false;
         }
         try {
             serverApi = new ServerApi(address, port);
             System.out.println("connected");
         } catch (ConnectException e) {
-            System.out.println("connection failed");
+            System.err.println("connection failed");
             return false;
         }
         return true;
@@ -92,7 +92,7 @@ public class KahootApp extends Application {
         if (Optional.ofNullable(serverApi).isPresent()) {
             return Optional.of(serverApi.getReader().getMessageSubject());
         }
-        System.out.println("cannot get messages because server api is null");
+        System.err.println("cannot get messages because server api is null");
         return Optional.empty();
     }
 

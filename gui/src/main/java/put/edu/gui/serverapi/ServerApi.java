@@ -34,7 +34,7 @@ public class ServerApi {
         try {
             socket.close();
         } catch (IOException e) {
-            System.out.println("socket disconnection error");
+            System.err.println("socket disconnection error");
         }
         System.out.println("disconnecting succeeded");
     }
