@@ -3,21 +3,21 @@ package put.edu.gui.game.messages.responses;
 import put.edu.gui.game.messages.Message;
 
 public class CurrentResultsMessage extends Message {
-    private final int numberOfAnswers;
+    private final int answers;
 
-    public CurrentResultsMessage(int type, int numberOfAnswers) {
+    public CurrentResultsMessage(int type, int answers) {
         super(type);
-        this.numberOfAnswers = numberOfAnswers;
+        this.answers = answers;
     }
 
-    public int getNumberOfAnswers() {
-        return numberOfAnswers;
+    public int getAnswers() {
+        return answers;
     }
 
     @Override
     public String toString() {
         return "CurrentResultsMessage{" +
-                "numberOfAnswers=" + numberOfAnswers +
+                "numberOfAnswers=" + answers +
                 '}';
     }
 }

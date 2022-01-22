@@ -181,8 +181,8 @@ public class HostViewController {
                 .filter(message -> message instanceof CurrentResultsMessage)
                 .subscribe(message -> {
                     CurrentResultsMessage currentResultsMessage = (CurrentResultsMessage) message;
-                    playerAnsweredCount = currentResultsMessage.getNumberOfAnswers();
-                    answersText.setText("Answers: " + currentResultsMessage.getNumberOfAnswers());
+                    playerAnsweredCount = currentResultsMessage.getAnswers();
+                    answersText.setText("Answers: " + currentResultsMessage.getAnswers());
                 });
     }
 
