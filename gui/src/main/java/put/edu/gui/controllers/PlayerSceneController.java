@@ -97,8 +97,8 @@ public class PlayerSceneController {
                     RoundEndedMessage roundEndedMessage = (RoundEndedMessage) message;
                     infoText.setText("round ended");
                     statisticsText.setText("Place: " + roundEndedMessage.getPlaceInRanking() +
-                            "Score: " + roundEndedMessage.getScore() +
-                            "Last answer was: " + (roundEndedMessage.isWasCorrectAnswer() ? "correct" : "bad"));
+                            ", Score: " + roundEndedMessage.getScore() +
+                            ", Last answer was: " + (roundEndedMessage.isWasCorrectAnswer() ? "correct" : "bad"));
                 });
     }
 }
