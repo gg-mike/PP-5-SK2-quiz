@@ -22,6 +22,7 @@ private:
     std::atomic<bool> canAnswer{false};
 
     std::mutex mtx;
+    std::mutex answersMtx;
     std::unique_lock<std::mutex> lock;
     std::thread answersNumberThread;
 

@@ -117,7 +117,10 @@ json Game::StartRound() {
     state = GameState::R_STARTED;
     canAnswer = true;
     answersNumberThread = std::thread(&Game::AnswersNumberHandler, this);
-    answers.clear();
+    {
+        std::lock_guard _{answersMtx};
+        answers.clear();
+    }
     NotifyPlayers();
 
     Question currQ = questions.at(currentQuestion);
@@ -173,11 +176,13 @@ nlohmann::json Game::PlayerAnswered(const std::string &nick, const json &answerJ
     Field<std::string> answer = Test<std::string>(answerJson, "answer", players.at(nick)->GetFd(), Request::ANSWER);
     if (answer.opStatus != 1) return {};
 
-    if (std::string("ABCD").find(answer.value) == std::string::npos)
-        answers.insert({nick, ""});
-    else
-        answers.insert({nick, answer.value});
-
+    {
+        std::lock_guard _{answersMtx};
+        if (std::string("ABCD").find(answer.value) == std::string::npos)
+            answers.insert({nick, ""});
+        else
+            answers.insert({nick, answer.value});
+    }
     players.at(nick)->SetAnswered(true);
     players.at(nick)->SetWasCorrectAnswer(answer.value == questions.at(currentQuestion).rightAnswer);
 
@@ -191,7 +196,10 @@ nlohmann::json Game::PlayerExit(const std::string &nick) {
     players.at(nick)->SetStateChange(true);
 
     players.erase(nick);
-    answers.erase(nick);
+    {
+        std::lock_guard _{answersMtx};
+        answers.erase(nick);
+    }
 
     AllAnsweredCheck();
 
@@ -220,15 +228,17 @@ json Game::GenerateRanking() {
         {"ranking", {}}
     };
 
-    for (const auto& [nick, player]: players) {
-        if (answers.contains(nick)) {
-            if (!answers.at(nick).empty())
-                j["results"][answers.at(nick)] = (int)j["results"][answers.at(nick)] + 1;
-            if (players.at(nick)->GetWasCorrectAnswer())
-                players.at(nick)->IncreaseScore(1);
+    {
+        std::lock_guard _{answersMtx};
+        for (const auto&[nick, player]: players) {
+            if (answers.contains(nick)) {
+                if (!answers.at(nick).empty())
+                    j["results"][answers.at(nick)] = (int) j["results"][answers.at(nick)] + 1;
+                if (players.at(nick)->GetWasCorrectAnswer())
+                    players.at(nick)->IncreaseScore(1);
+            } else
+                answers.insert({nick, ""});
         }
-        else
-            answers.insert({nick, ""});
     }
 
     std::vector<std::shared_ptr<Player>> tmp{};
@@ -260,7 +270,12 @@ json Game::GenerateRanking() {
 }
 
 void Game::AllAnsweredCheck() {
-    if (state == GameState::R_STARTED && players.size() == answers.size()) {
+    unsigned long answersSize;
+    {
+        std::lock_guard _{answersMtx};
+        answersSize = answers.size();
+    }
+    if (state == GameState::R_STARTED && players.size() == answersSize) {
         Server::GetInstance()->Send(host->GetFd(), {{"type", Request::ALL_ANSWERED}});
         canAnswer = false;
     }
@@ -268,12 +283,16 @@ void Game::AllAnsweredCheck() {
 
 void Game::AnswersNumberHandler() {
     int t = Server::GetInstance()->GetConfig().timeBetweenAnswersNumberSend_sec;
+    unsigned long answersSize;
     while(canAnswer) {
         std::this_thread::sleep_for(std::chrono::seconds (t));
-        std::lock_guard _{mtx};
+        {
+            std::lock_guard _{answersMtx};
+            answersSize = answers.size();
+        }
         Server::GetInstance()->Send(host->GetFd(), {
                 {"type", Request::CURRENT_RESULTS},
-                {"answers", answers.size()}
+                {"answers", answersSize}
         });
     }
 }
