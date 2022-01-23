@@ -8,6 +8,7 @@ public enum MessageTypePair {
     GameEndedMessage(MessageType.GAME_ENDED.getValue()),
     GameShutdownMessage(MessageType.GAME_SHUTDOWN.getValue()),
     JoinGameMessage(MessageType.JOIN_GAME.getValue()),
+    PlayerJoinedMessage(MessageType.PLAYER_JOINED.getValue()),
     RoundEndedMessage(MessageType.ROUND_ENDED.getValue()),
     RoundTimeoutMessage(MessageType.ROUND_TIMEOUT.getValue()),
     StartRoundMessage(MessageType.START_ROUND.getValue() | MessageType.ACCEPT.getValue());

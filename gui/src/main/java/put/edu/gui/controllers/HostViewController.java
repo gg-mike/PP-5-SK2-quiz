@@ -162,14 +162,13 @@ public class HostViewController {
         KahootApp.get().getMessageObservable()
                 .filter(message -> (message.getType() & MessageType.ALL_ANSWERED.getValue()) == MessageType.ALL_ANSWERED.getValue())
                 .subscribe(message -> {
-                    endRoundButton.setVisible(false);
-                    nextQuestionButton.setVisible(true);
                     KahootApp.get().sendMessage(new RequestEndRoundMessage());
                 });
-
         KahootApp.get().getMessageObservable()
                 .filter(message -> message instanceof EndRoundMessage)
                 .subscribe(message -> {
+                    endRoundButton.setVisible(false);
+                    nextQuestionButton.setVisible(true);
                     XYChart.Series<String, Number> series = new XYChart.Series<>();
                     series.getData().add(new XYChart.Data<>("A", ((EndRoundMessage) message).getA()));
                     series.getData().add(new XYChart.Data<>("B", ((EndRoundMessage) message).getB()));

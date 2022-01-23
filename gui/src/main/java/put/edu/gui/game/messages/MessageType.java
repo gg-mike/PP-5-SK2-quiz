@@ -27,6 +27,8 @@ public enum MessageType {
     END_ROUND(388),
 
     // TO HOST
+    REQUEST_ACTION(500),
+    PLAYER_JOINED(488),
     ALL_ANSWERED(52),
     CURRENT_RESULTS(100),
 
