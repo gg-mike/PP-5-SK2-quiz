@@ -172,7 +172,7 @@ public class HostViewController {
                             endRoundButton.setVisible(false);
                             nextQuestionButton.setVisible(true);
                             StringBuilder ranking = new StringBuilder("Ranking: ");
-                            for (RankingRecord rankingRecord : endRoundMessage.getRanking().stream().sorted(Comparator.comparingInt(RankingRecord::getPos)).toList()) {
+                            for (RankingRecord rankingRecord : endRoundMessage.getRanking().stream().sorted(Comparator.comparingInt(RankingRecord::getPos)).limit(3).toList()) {
                                 ranking.append("\n").append(rankingRecord.getPos()).append(". ").append(rankingRecord.getNick()).append(", score: ").append(rankingRecord.getScore());
                             }
                             rankingText.setText(ranking.toString());
