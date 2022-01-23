@@ -17,4 +17,12 @@ public class GameShutdownMessage extends Message {
     public int getPlaceInRanking() {
         return placeInRanking;
     }
+
+    @Override
+    public String toString() {
+        return "GameShutdownMessage{" +
+                "score=" + score +
+                ", placeInRanking=" + placeInRanking +
+                '}';
+    }
 }

@@ -25,9 +25,17 @@ public class MainSceneController {
         if (serverUrl.isBlank()) {
             return;
         }
-        String[] addressPort = serverUrl.split(":", 2);
-        String address = addressPort[0];
-        int port = Integer.parseInt(addressPort[1]);
+        String address;
+        int port;
+        try {
+            String[] addressPort = serverUrl.split(":", 2);
+            address = addressPort[0];
+            port = Integer.parseInt(addressPort[1]);
+        } catch (Exception e) {
+            System.out.println("bad connect data");
+            KahootApp.get().showPopupWindow("Failed to connect", "bad address data");
+            return;
+        }
         if (KahootApp.get().connect(address, port)) {
             connectButton.setText("DISCONNECT");
             serverAddressTextField.setVisible(false);

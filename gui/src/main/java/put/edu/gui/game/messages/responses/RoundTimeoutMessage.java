@@ -12,6 +12,14 @@ public class RoundTimeoutMessage extends Message {
         this.placeInRanking = placeInRanking;
     }
 
+    public int getScore() {
+        return score;
+    }
+
+    public int getPlaceInRanking() {
+        return placeInRanking;
+    }
+
     @Override
     public String toString() {
         return "RoundTimeoutMessage{" +

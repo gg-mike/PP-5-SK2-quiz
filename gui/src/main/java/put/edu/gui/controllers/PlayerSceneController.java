@@ -12,6 +12,7 @@ import put.edu.gui.game.messages.requests.AnswerMessage;
 import put.edu.gui.game.messages.requests.RequestJoinGameMessage;
 import put.edu.gui.game.messages.responses.GameShutdownMessage;
 import put.edu.gui.game.messages.responses.RoundEndedMessage;
+import put.edu.gui.game.messages.responses.RoundTimeoutMessage;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class PlayerSceneController {
@@ -90,7 +91,6 @@ public class PlayerSceneController {
                     infoText.setText("Game ended, score: " + gameShutdownMessage.getScore() +
                             ", place in ranking: " + gameShutdownMessage.getPlaceInRanking());
                 });
-
         KahootApp.get().getMessageObservable()
                 .filter(message -> message instanceof RoundEndedMessage)
                 .subscribe(message -> {
@@ -100,5 +100,14 @@ public class PlayerSceneController {
                             ", Score: " + roundEndedMessage.getScore() +
                             ", Last answer was: " + (roundEndedMessage.isWasCorrectAnswer() ? "correct" : "bad"));
                 });
+        KahootApp.get().getMessageObservable()
+                .filter(message -> message instanceof RoundTimeoutMessage)
+                .subscribe(message -> {
+                    RoundTimeoutMessage roundTimeoutMessage = (RoundTimeoutMessage) message;
+                    infoText.setText("round ended before your answer");
+                    statisticsText.setText("Place: " + roundTimeoutMessage.getPlaceInRanking() +
+                            ", Score: " + roundTimeoutMessage.getScore());
+                });
+
     }
 }
