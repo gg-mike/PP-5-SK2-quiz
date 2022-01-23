@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 
+@SuppressWarnings("ALL")
 public class KahootApp extends Application {
     public static final int width = 800;
     public static final int height = 500;

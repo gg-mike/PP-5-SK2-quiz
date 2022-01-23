@@ -14,11 +14,13 @@ import put.edu.gui.game.messages.MessageType;
 import put.edu.gui.game.messages.requests.*;
 import put.edu.gui.game.messages.responses.*;
 import put.edu.gui.game.models.Question;
+import put.edu.gui.game.models.RankingRecord;
 
 import java.io.File;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,6 +44,8 @@ public class HostViewController {
     public Text answersText;
     @FXML
     public Text questionText;
+    @FXML
+    public Text rankingText;
     @FXML
     BarChart<String, Number> barChart;
     private int playerCount = 0;
@@ -78,7 +82,6 @@ public class HostViewController {
             questionsCount = questionList.size();
             System.out.println("questions loaded");
             KahootApp.get().sendMessage(new AddQuestionsMessage(questionList));
-
         }
     }
 
@@ -164,13 +167,19 @@ public class HostViewController {
         KahootApp.get().getMessageObservable()
                 .filter(message -> message instanceof EndRoundMessage)
                 .subscribe(message -> {
+                    EndRoundMessage endRoundMessage = (EndRoundMessage) message;
                     endRoundButton.setVisible(false);
                     nextQuestionButton.setVisible(true);
+                    StringBuilder ranking = new StringBuilder("Ranking: ");
+                    for (RankingRecord rankingRecord : endRoundMessage.getRanking().stream().sorted(Comparator.comparingInt(RankingRecord::getPos)).toList()) {
+                        ranking.append("\n").append(rankingRecord.getPos()).append(". ").append(rankingRecord.getNick()).append(", score: ").append(rankingRecord.getScore());
+                    }
+                    rankingText.setText(ranking.toString());
                     XYChart.Series<String, Number> series = new XYChart.Series<>();
-                    series.getData().add(new XYChart.Data<>("A", ((EndRoundMessage) message).getResults().get("A")));
-                    series.getData().add(new XYChart.Data<>("B", ((EndRoundMessage) message).getResults().get("B")));
-                    series.getData().add(new XYChart.Data<>("C", ((EndRoundMessage) message).getResults().get("C")));
-                    series.getData().add(new XYChart.Data<>("D", ((EndRoundMessage) message).getResults().get("D")));
+                    series.getData().add(new XYChart.Data<>("A", endRoundMessage.getResults().get("A")));
+                    series.getData().add(new XYChart.Data<>("B", endRoundMessage.getResults().get("B")));
+                    series.getData().add(new XYChart.Data<>("C", endRoundMessage.getResults().get("C")));
+                    series.getData().add(new XYChart.Data<>("D", endRoundMessage.getResults().get("D")));
                     Platform.runLater(() -> updateBarChart(series));
                 });
         KahootApp.get().getMessageObservable()
@@ -191,6 +200,7 @@ public class HostViewController {
     private void updateBarChart(XYChart.Series<String, Number> series) {
         System.out.println("updating bar chart, data: " + series);
         barChart.getData().clear();
+        barChart.setScaleY(1);
         barChart.getXAxis().setLabel("Answer");
         barChart.getYAxis().setLabel("Count");
         barChart.getData().add(series);

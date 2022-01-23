@@ -88,7 +88,7 @@ public class PlayerSceneController {
                 .subscribe(message -> {
                     GameShutdownMessage gameShutdownMessage = (GameShutdownMessage) message;
                     infoText.setText("Game ended, score: " + gameShutdownMessage.getScore() +
-                            "place in ranking: " + gameShutdownMessage.getPlaceInRanking());
+                            ", place in ranking: " + gameShutdownMessage.getPlaceInRanking());
                 });
 
         KahootApp.get().getMessageObservable()
