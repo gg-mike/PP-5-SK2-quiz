@@ -12,10 +12,7 @@ import javafx.stage.FileChooser;
 import put.edu.gui.KahootApp;
 import put.edu.gui.game.messages.MessageType;
 import put.edu.gui.game.messages.requests.*;
-import put.edu.gui.game.messages.responses.CreateGameMessage;
-import put.edu.gui.game.messages.responses.CurrentResultsMessage;
-import put.edu.gui.game.messages.responses.EndRoundMessage;
-import put.edu.gui.game.messages.responses.StartRoundMessage;
+import put.edu.gui.game.messages.responses.*;
 import put.edu.gui.game.models.Question;
 
 import java.io.File;
@@ -182,6 +179,12 @@ public class HostViewController {
                     CurrentResultsMessage currentResultsMessage = (CurrentResultsMessage) message;
                     playerAnsweredCount = currentResultsMessage.getAnswers();
                     answersText.setText("Answers: " + currentResultsMessage.getAnswers());
+                });
+        KahootApp.get().getMessageObservable()
+                .filter(message -> message instanceof PlayerJoinedMessage)
+                .subscribe(message -> {
+                    playerCount++;
+                    playersText.setText(String.valueOf(playerCount));
                 });
     }
 
