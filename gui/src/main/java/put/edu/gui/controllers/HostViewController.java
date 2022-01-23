@@ -200,7 +200,6 @@ public class HostViewController {
     private void updateBarChart(XYChart.Series<String, Number> series) {
         System.out.println("updating bar chart, data: " + series);
         barChart.getData().clear();
-        barChart.setScaleY(1);
         barChart.getXAxis().setLabel("Answer");
         barChart.getYAxis().setLabel("Count");
         barChart.getData().add(series);
