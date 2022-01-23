@@ -24,7 +24,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class HostViewController {
     @FXML
     public Button createGameButton;
@@ -50,7 +49,6 @@ public class HostViewController {
     BarChart<String, Number> barChart;
     private int playerCount = 0;
     private int playerAnsweredCount = 0;
-    private int questionsCount = 0;
     private int questionNumber;
 
     public HostViewController() {
@@ -79,7 +77,7 @@ public class HostViewController {
             System.out.println("Failed to load questions");
         }
         if (Optional.ofNullable(questionList).isPresent()) {
-            questionsCount = questionList.size();
+            int questionsCount = questionList.size();
             System.out.println("questions loaded");
             KahootApp.get().sendMessage(new AddQuestionsMessage(questionList));
         }
@@ -106,95 +104,100 @@ public class HostViewController {
     }
 
     private void initSubscriptions() {
-        KahootApp.get().getMessageObservable()
-                .filter(message -> (message.getType() & MessageType.CREATE_GAME.getValue()) == MessageType.CREATE_GAME.getValue())
-                .take(1)
-                .subscribe(message -> {
-                    if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
-                        System.out.println("Game created");
-                        gameCodeText.setText("Game code: " + ((CreateGameMessage) message).getGameCode());
-                        createGameButton.setVisible(false);
-                        selectFileButton.setVisible(true);
-                    } else {
-                        System.out.println("Game creation failed");
-                    }
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> (message.getType() & MessageType.ADD_QUESTIONS.getValue()) == MessageType.ADD_QUESTIONS.getValue())
-                .take(1)
-                .subscribe(message -> {
-                    if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
-                        System.out.println("questions accepted by server");
-                        selectFileButton.setVisible(false);
-                        startGameButton.setVisible(true);
-                    } else {
-                        System.out.println("questions declined by server");
-                    }
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> (message.getType() & MessageType.START_GAME.getValue()) == MessageType.START_GAME.getValue())
-                .subscribe(message -> {
-                    if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
-                        System.out.println("game started");
-                        startGameButton.setVisible(false);
-                        nextQuestionButton.setVisible(true);
-                    } else if ((message.getType() & MessageType.DECLINE.getValue()) == MessageType.DECLINE.getValue()) {
-                        System.out.println("start game declined");
-                        Platform.runLater(() -> KahootApp.get().showPopupWindow("start game declined", message.getDesc()));
-                    }
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> message instanceof StartRoundMessage)
-                .subscribe(message -> {
-                    StartRoundMessage startRoundMessage = (StartRoundMessage) message;
-                    questionText.setText("Question: " +
-                            "\nnumber: " + startRoundMessage.getQuestion().getN() +
-                            "\ncontents: " + startRoundMessage.getQuestion().getQ() +
-                            "\nAnswers: " +
-                            "\nA: " + startRoundMessage.getQuestion().getA() +
-                            "\nB: " + startRoundMessage.getQuestion().getB() +
-                            "\nC: " + startRoundMessage.getQuestion().getC() +
-                            "\nD: " + startRoundMessage.getQuestion().getD()
-                    );
-                    endRoundButton.setVisible(true);
-                    nextQuestionButton.setVisible(false);
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> (message.getType() & MessageType.ALL_ANSWERED.getValue()) == MessageType.ALL_ANSWERED.getValue())
-                .subscribe(message -> {
-                    KahootApp.get().sendMessage(new RequestEndRoundMessage());
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> message instanceof EndRoundMessage)
-                .subscribe(message -> {
-                    EndRoundMessage endRoundMessage = (EndRoundMessage) message;
-                    endRoundButton.setVisible(false);
-                    nextQuestionButton.setVisible(true);
-                    StringBuilder ranking = new StringBuilder("Ranking: ");
-                    for (RankingRecord rankingRecord : endRoundMessage.getRanking().stream().sorted(Comparator.comparingInt(RankingRecord::getPos)).toList()) {
-                        ranking.append("\n").append(rankingRecord.getPos()).append(". ").append(rankingRecord.getNick()).append(", score: ").append(rankingRecord.getScore());
-                    }
-                    rankingText.setText(ranking.toString());
-                    XYChart.Series<String, Number> series = new XYChart.Series<>();
-                    series.getData().add(new XYChart.Data<>("A", endRoundMessage.getResults().get("A")));
-                    series.getData().add(new XYChart.Data<>("B", endRoundMessage.getResults().get("B")));
-                    series.getData().add(new XYChart.Data<>("C", endRoundMessage.getResults().get("C")));
-                    series.getData().add(new XYChart.Data<>("D", endRoundMessage.getResults().get("D")));
-                    Platform.runLater(() -> updateBarChart(series));
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> message instanceof CurrentResultsMessage)
-                .subscribe(message -> {
-                    CurrentResultsMessage currentResultsMessage = (CurrentResultsMessage) message;
-                    playerAnsweredCount = currentResultsMessage.getAnswers();
-                    answersText.setText("Answers: " + currentResultsMessage.getAnswers());
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> message instanceof PlayerJoinedMessage)
-                .subscribe(message -> {
-                    playerCount++;
-                    playersText.setText("Players: " + playerCount);
-                });
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> (message.getType() & MessageType.CREATE_GAME.getValue()) == MessageType.CREATE_GAME.getValue())
+                        .subscribe(message -> {
+                            if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
+                                System.out.println("Game created");
+                                gameCodeText.setText("Game code: " + ((CreateGameMessage) message).getGameCode());
+                                createGameButton.setVisible(false);
+                                selectFileButton.setVisible(true);
+                            } else {
+                                System.out.println("Game creation failed");
+                            }
+                        }));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> (message.getType() & MessageType.ADD_QUESTIONS.getValue()) == MessageType.ADD_QUESTIONS.getValue())
+                        .subscribe(message -> {
+                            if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
+                                System.out.println("questions accepted by server");
+                                selectFileButton.setVisible(false);
+                                startGameButton.setVisible(true);
+                            } else {
+                                System.out.println("questions declined by server");
+                            }
+                        }));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> (message.getType() & MessageType.START_GAME.getValue()) == MessageType.START_GAME.getValue())
+                        .subscribe(message -> {
+                            if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
+                                System.out.println("game started");
+                                startGameButton.setVisible(false);
+                                nextQuestionButton.setVisible(true);
+                            } else if ((message.getType() & MessageType.DECLINE.getValue()) == MessageType.DECLINE.getValue()) {
+                                System.out.println("start game declined");
+                                Platform.runLater(() -> KahootApp.get().showPopupWindow("start game declined", message.getDesc()));
+                            }
+                        }));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> message instanceof StartRoundMessage)
+                        .subscribe(message -> {
+                            StartRoundMessage startRoundMessage = (StartRoundMessage) message;
+                            answersText.setText("Answers: 0");
+                            questionText.setText("Question: " +
+                                    "\nnumber: " + startRoundMessage.getQuestion().getN() +
+                                    "\ncontents: " + startRoundMessage.getQuestion().getQ() +
+                                    "\nAnswers: " +
+                                    "\nA: " + startRoundMessage.getQuestion().getA() +
+                                    "\nB: " + startRoundMessage.getQuestion().getB() +
+                                    "\nC: " + startRoundMessage.getQuestion().getC() +
+                                    "\nD: " + startRoundMessage.getQuestion().getD()
+                            );
+                            endRoundButton.setVisible(true);
+                            nextQuestionButton.setVisible(false);
+                        }));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> (message.getType() & MessageType.ALL_ANSWERED.getValue()) == MessageType.ALL_ANSWERED.getValue())
+                        .subscribe(message -> KahootApp.get().sendMessage(new RequestEndRoundMessage())));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> message instanceof EndRoundMessage)
+                        .subscribe(message -> {
+                            EndRoundMessage endRoundMessage = (EndRoundMessage) message;
+                            endRoundButton.setVisible(false);
+                            nextQuestionButton.setVisible(true);
+                            StringBuilder ranking = new StringBuilder("Ranking: ");
+                            for (RankingRecord rankingRecord : endRoundMessage.getRanking().stream().sorted(Comparator.comparingInt(RankingRecord::getPos)).toList()) {
+                                ranking.append("\n").append(rankingRecord.getPos()).append(". ").append(rankingRecord.getNick()).append(", score: ").append(rankingRecord.getScore());
+                            }
+                            rankingText.setText(ranking.toString());
+                            XYChart.Series<String, Number> series = new XYChart.Series<>();
+                            series.getData().add(new XYChart.Data<>("A", endRoundMessage.getResults().get("A")));
+                            series.getData().add(new XYChart.Data<>("B", endRoundMessage.getResults().get("B")));
+                            series.getData().add(new XYChart.Data<>("C", endRoundMessage.getResults().get("C")));
+                            series.getData().add(new XYChart.Data<>("D", endRoundMessage.getResults().get("D")));
+                            Platform.runLater(() -> updateBarChart(series));
+                        }));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> message instanceof CurrentResultsMessage)
+                        .subscribe(message -> {
+                            CurrentResultsMessage currentResultsMessage = (CurrentResultsMessage) message;
+                            playerAnsweredCount = currentResultsMessage.getAnswers();
+                            answersText.setText("Answers: " + currentResultsMessage.getAnswers());
+                        }));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> message instanceof PlayerJoinedMessage)
+                        .subscribe(message -> {
+                            playerCount++;
+                            playersText.setText("Players: " + playerCount);
+                        }));
     }
 
     private void updateBarChart(XYChart.Series<String, Number> series) {

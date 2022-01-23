@@ -1,6 +1,7 @@
 package put.edu.gui;
 
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -15,6 +16,8 @@ import put.edu.gui.serverapi.ServerApi;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -26,6 +29,7 @@ public class KahootApp extends Application {
     private static KahootApp kahootApp;
     private Stage stage;
     private ServerApi serverApi;
+    private List<Disposable> disposableList = new ArrayList<>();
 
     public static KahootApp get() {
         return kahootApp;
@@ -40,6 +44,8 @@ public class KahootApp extends Application {
     }
 
     public void showScene(String sceneFileName) {
+        disposableList.stream().forEach(disposable -> disposable.dispose());
+        disposableList.clear();
         try {
             Parent parent = FXMLLoader.load(Objects.requireNonNull(KahootApp.class.getResource(sceneFileName)));
             Scene scene = new Scene(parent, KahootApp.width, KahootApp.height);
@@ -124,6 +130,10 @@ public class KahootApp extends Application {
         }
         System.err.println("cannot get messages because server api is null");
         return null;
+    }
+
+    public void addDisposable(Disposable disposable) {
+        disposableList.add(disposable);
     }
 
     @Override

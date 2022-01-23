@@ -14,7 +14,6 @@ import put.edu.gui.game.messages.responses.GameShutdownMessage;
 import put.edu.gui.game.messages.responses.RoundEndedMessage;
 import put.edu.gui.game.messages.responses.RoundTimeoutMessage;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class PlayerSceneController {
     @FXML
     public TextField gameCodeTextField;
@@ -63,51 +62,57 @@ public class PlayerSceneController {
     }
 
     private void initSubscriptions() {
-        KahootApp.get().getMessageObservable()
-                .filter(message -> (MessageType.JOIN_GAME.getValue() & message.getType()) == MessageType.JOIN_GAME.getValue())
-                .subscribe(message -> {
-                    if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
-                        System.out.println("joined game: " + gameCode);
-                        joinGameGridPane.setVisible(false);
-                        infoText.setText("joined game");
-                    } else {
-                        System.out.println("Failed to join game: " + gameCode);
-                        KahootApp.get().showPopupWindow("Failed to join game", "Failed to join game: " + gameCode);
-                    }
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> (MessageType.GAME_STARTED.getValue() & message.getType()) == MessageType.GAME_STARTED.getValue())
-                .subscribe(message -> infoText.setText("game started"));
-        KahootApp.get().getMessageObservable()
-                .filter(message -> (MessageType.ROUND_STARTED.getValue() & message.getType()) == MessageType.ROUND_STARTED.getValue())
-                .subscribe(message -> {
-                    infoText.setText("round started");
-                    optionsGridPane.setVisible(true);
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> message instanceof GameShutdownMessage)
-                .subscribe(message -> {
-                    GameShutdownMessage gameShutdownMessage = (GameShutdownMessage) message;
-                    infoText.setText("Game ended, score: " + gameShutdownMessage.getScore() +
-                            ", place in ranking: " + gameShutdownMessage.getPlaceInRanking());
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> message instanceof RoundEndedMessage)
-                .subscribe(message -> {
-                    RoundEndedMessage roundEndedMessage = (RoundEndedMessage) message;
-                    infoText.setText("round ended");
-                    statisticsText.setText("Place: " + roundEndedMessage.getPlaceInRanking() +
-                            ", Score: " + roundEndedMessage.getScore() +
-                            ", Last answer was: " + (roundEndedMessage.isWasCorrectAnswer() ? "correct" : "bad"));
-                });
-        KahootApp.get().getMessageObservable()
-                .filter(message -> message instanceof RoundTimeoutMessage)
-                .subscribe(message -> {
-                    RoundTimeoutMessage roundTimeoutMessage = (RoundTimeoutMessage) message;
-                    infoText.setText("round ended before your answer");
-                    statisticsText.setText("Place: " + roundTimeoutMessage.getPlaceInRanking() +
-                            ", Score: " + roundTimeoutMessage.getScore());
-                });
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> (MessageType.JOIN_GAME.getValue() & message.getType()) == MessageType.JOIN_GAME.getValue())
+                        .subscribe(message -> {
+                            if ((message.getType() & MessageType.ACCEPT.getValue()) == MessageType.ACCEPT.getValue()) {
+                                System.out.println("joined game: " + gameCode);
+                                joinGameGridPane.setVisible(false);
+                                infoText.setText("joined game");
+                            } else {
+                                System.out.println("Failed to join game: " + gameCode);
+                                KahootApp.get().showPopupWindow("Failed to join game", "Failed to join game: " + gameCode);
+                            }
+                        }));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> (MessageType.GAME_STARTED.getValue() & message.getType()) == MessageType.GAME_STARTED.getValue())
+                        .subscribe(message -> infoText.setText("game started")));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> (MessageType.ROUND_STARTED.getValue() & message.getType()) == MessageType.ROUND_STARTED.getValue())
+                        .subscribe(message -> {
+                            infoText.setText("round started");
+                            optionsGridPane.setVisible(true);
+                        }));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> message instanceof GameShutdownMessage)
+                        .subscribe(message -> {
+                            GameShutdownMessage gameShutdownMessage = (GameShutdownMessage) message;
+                            infoText.setText("Game ended, score: " + gameShutdownMessage.getScore() +
+                                    ", place in ranking: " + gameShutdownMessage.getPlaceInRanking());
+                        }));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> message instanceof RoundEndedMessage)
+                        .subscribe(message -> {
+                            RoundEndedMessage roundEndedMessage = (RoundEndedMessage) message;
+                            infoText.setText("round ended");
+                            statisticsText.setText("Place: " + roundEndedMessage.getPlaceInRanking() +
+                                    ", Score: " + roundEndedMessage.getScore() +
+                                    ", Last answer was: " + (roundEndedMessage.isWasCorrectAnswer() ? "correct" : "bad"));
+                        }));
+        KahootApp.get().addDisposable(
+                KahootApp.get().getMessageObservable()
+                        .filter(message -> message instanceof RoundTimeoutMessage)
+                        .subscribe(message -> {
+                            RoundTimeoutMessage roundTimeoutMessage = (RoundTimeoutMessage) message;
+                            infoText.setText("round ended before your answer");
+                            statisticsText.setText("Place: " + roundTimeoutMessage.getPlaceInRanking() +
+                                    ", Score: " + roundTimeoutMessage.getScore());
+                        }));
 
     }
 }
